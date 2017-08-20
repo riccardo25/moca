@@ -1,6 +1,10 @@
 {
     "files.associations": {
         "stdio.h": "c",
-        "fontautil.h": "c"
+        "fontautil.h": "c",
+        "string.h": "c",
+        "xmemory0": "c",
+        "iosfwd": "c",
+        "xutility": "c"
     }
 }

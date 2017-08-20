@@ -6,15 +6,20 @@ CC=gcc
 
 CFLAGS= -g -Wall
 FONTAUTILO= build/linux/fontautil.o
+FONTACOMMUNICATIONO= build/linux/fontacommunication.o
 NAMEFILE= mocamain.c
 PROGRAM_NAME=moca
 
-LIBS = $(FONTAUTILO)
+LIBS = $(FONTAUTILO) $(FONTACOMUNICATIONO) 
+
+
+fontacommunication:
+	$(CC) $(CFLAGS) -o $(FONTACOMMUNICATIONO) -c libs/fontacommunication.c
 
 fontautil:
 	$(CC) $(CFLAGS) -o $(FONTAUTILO) -c libs/fontautil.c
 
-$(PROGRAM_NAME): fontautil
+$(PROGRAM_NAME): fontautil fontacommunication
 	@mkdir -p build/linux
 	$(CC) $(CFLAGS) $(NAMEFILE) -o build/linux/$(PROGRAM_NAME) $(OBJECTS) $(LIBS)
 	@echo " "
