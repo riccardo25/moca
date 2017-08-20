@@ -98,4 +98,7 @@ int controlProgramInFolder(char list[MAXSUBFOLDERS][MAXNAMEFILE], int n_folders)
     
 }
 
-void startService
+void startService()
+{
+    
+}
