@@ -10,14 +10,14 @@ FONTACOMMUNICATIONO= build/linux/fontacommunication.o
 NAMEFILE= mocamain.c
 PROGRAM_NAME=moca
 
-LIBS = $(FONTAUTILO) $(FONTACOMUNICATIONO) 
+LIBS = $(FONTAUTILO) $(FONTACOMUNICATIONO) -lpthread 
 
 
 fontacommunication:
 	$(CC) $(CFLAGS) -o $(FONTACOMMUNICATIONO) -c libs/fontacommunication.c
 
 fontautil:
-	$(CC) $(CFLAGS) -o $(FONTAUTILO) -c libs/fontautil.c
+	$(CC) $(CFLAGS) -o $(FONTAUTILO) -c libs/fontautil.c -lpthread
 
 $(PROGRAM_NAME): fontautil fontacommunication
 	@mkdir -p build/linux

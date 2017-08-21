@@ -6,6 +6,17 @@
 
 */
 
+#include <stdlib.h>
+#include <stdio.h>
+
+//to read folders
+#include <unistd.h>
+#include <sys/types.h>
+#include <dirent.h>
+#include <string.h>
+#include <sys/types.h>  
+#include <pthread.h>
+
 #ifndef _FONTAUTIL_H_
 #define _FONTAUTIL_H_
 
@@ -29,9 +40,26 @@
 //#define BLOCKINGAPI 1
 //maximum number of PIDs
 #define MAXOPENPIDS 50
+//maximum size of buffer in ServiceDescriptor
+#define MAXBUFFERSIZE 255
+//timeout in seconds for service deadlock
+#define TIMEOUTSECONDS 10
 
 
+typedef struct ServiceDescriptor
+{
+    char folderName[MAXNAMEFILE]; //name of folder (and service)
+    pid_t pid; //pid of creating service
+    int pipefd[2]; //pipe of service https://stackoverflow.com/questions/6171552/popen-simultaneous-read-and-write
+    char *absolutepath; //absolutepath of executible file (insert here because thread permit only one parameter to be passed)
 
+    pthread_t tid; //thread id
+
+    fd_set rfds; //non blocking api (timeout implementation)
+    struct timeval tv; //timeout structure
+
+
+} ServiceDescriptor;
 
 
 /**
@@ -47,8 +75,31 @@ Returns 0 (false) if all folders contain a programm called like his folder
 */
 int controlProgramInFolder(char list[MAXSUBFOLDERS][MAXNAMEFILE], int n_folders);
 
+/**
+Insert the name of service (in service) and control if this name is present in list (list of service)
+return <0 if nameservice is not present in list or something not works good
+*/ 
+int insertControlNameService(char list[MAXSUBFOLDERS][MAXNAMEFILE], char *nameservice, ServiceDescriptor *service, char *absolpth);
+/**
+Start new Service of existing program in subfolder
+Service passed
+Return <0 there is an error:    -1 is pipeline creating problem
+                                -2 is fork creating problem
 
-void startService();
+*/
+int startService(void *arg);
 
+/**
+Allocates memory for services and does some boring stuff
+size is the new blocks to insert in service array: if all works, return is lenghtServiceArray + size
+return  -1 error allocating memory
+        >0 lenght of array
+*/
+int allocateMemoryServices(ServiceDescriptor **serviceArray, int lenghtServiceArray, int size);
+
+/**
+Deallocates memory
+*/
+void deallocateMemoryServices(ServiceDescriptor **serviceArray);
 
 #endif

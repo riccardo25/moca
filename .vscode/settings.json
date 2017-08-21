@@ -5,6 +5,8 @@
         "string.h": "c",
         "xmemory0": "c",
         "iosfwd": "c",
-        "xutility": "c"
+        "xutility": "c",
+        "initializer_list": "c",
+        "type_traits": "c"
     }
 }
