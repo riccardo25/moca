@@ -97,7 +97,7 @@ int controlProgramInFolder(char list[MAXSUBFOLDERS][MAXNAMEFILE], int n_folders)
 }
 
 
-int insertControlNameService(char list[MAXSUBFOLDERS][MAXNAMEFILE], char *nameservice, ServiceDescriptor *service, char *absolpth)
+int insertControlNameService(char list[MAXSUBFOLDERS][MAXNAMEFILE], char *nameservice, ServiceDescriptor *service)
 {
     int i;
     for(i = 0; i<MAXSUBFOLDERS; i++)
@@ -116,18 +116,7 @@ int insertControlNameService(char list[MAXSUBFOLDERS][MAXNAMEFILE], char *namese
         return -1;
     }
 
-    //Wait up to TIMEOUTSECONDS seconds. 
-    (*service).tv.tv_sec = TIMEOUTSECONDS;
-    (*service).tv.tv_usec = 0;
-
-    //insert absolute path
-
-    if( ((*service).absolutepath = (char *) malloc( strlen(absolpth) * sizeof(char) )) == NULL)
-    {
-        return -2;
-    }
-
-    strcpy((*service).absolutepath, absolpth);
+    
     
     return 0;
 }
@@ -138,6 +127,7 @@ int startService(void *arg)
     ServiceDescriptor *service = (ServiceDescriptor *) arg;
     //create a pipe 
     //number of process less than MAXOPENPIDS
+
     if( pipe(service->pipefd) < 0)
     {
         printf(ANSI_COLOR_RED "Problem creating pipeline stop StartService" ANSI_COLOR_RESET "\n");
@@ -213,7 +203,6 @@ int startService(void *arg)
         service->tv.tv_usec = 0;
 
         int selectResult = 0, bytesRead = 0;
-
         //create buffer to read
         char buf[MAXBUFFERSIZE];
         //TIMEOUT implementation, firstly wait for pipe change with select
@@ -244,24 +233,25 @@ int startService(void *arg)
         }
     
     #endif
-    
 
-    
     close(service->pipefd[1]);
+    //clear the variable of service
+    clearService(service);
+    
     pthread_exit(NULL);
     return 0;
 }
 
 
-int allocateMemoryServices(ServiceDescriptor **serviceArray, int lenghtServiceArray, int size)
+int allocateMemoryServices(ServiceDescriptor **serviceArray, int lengthServiceArray, int size, char *absolpth)
 {
-    if(lenghtServiceArray <0 || size <= 0 || size + lenghtServiceArray > MAXOPENPIDS)
+    if(lengthServiceArray <0 || size <= 0 || size + lengthServiceArray > MAXOPENPIDS)
     {
         return -1;
     }
 
     //allocate dinamic memory
-    if(*serviceArray == NULL  && lenghtServiceArray == 0)
+    if(*serviceArray == NULL  && lengthServiceArray == 0)
     {
         *serviceArray = ( ServiceDescriptor *) malloc( size * sizeof( ServiceDescriptor) );
     
@@ -271,7 +261,7 @@ int allocateMemoryServices(ServiceDescriptor **serviceArray, int lenghtServiceAr
             return -1;
         }
     }
-    else if( (*serviceArray == NULL && lenghtServiceArray != 0) || (*serviceArray != NULL && lenghtServiceArray == 0))
+    else if( (*serviceArray == NULL && lengthServiceArray != 0) || (*serviceArray != NULL && lengthServiceArray == 0))
     {
         //not possible condition
         return -1;
@@ -279,13 +269,55 @@ int allocateMemoryServices(ServiceDescriptor **serviceArray, int lenghtServiceAr
     else
     {
         //allocats new blocks
-        *serviceArray = ( ServiceDescriptor *) realloc(*serviceArray, (size + lenghtServiceArray) * sizeof( ServiceDescriptor) );
+        *serviceArray = ( ServiceDescriptor *) realloc(*serviceArray, (size + lengthServiceArray) * sizeof( ServiceDescriptor) );
     }
 
-    return size + lenghtServiceArray;
+    //do ripetitive stuff
+    int i;
+    for(i = 0; i< size + lengthServiceArray; i++)
+    {
+        //assign folder (service) name to null 
+        //*((*serviceArray)[i].folderName) = NULL;
+        clearService(&((*serviceArray)[i]));
+        //Wait up to TIMEOUTSECONDS seconds. 
+        (*serviceArray)[i].tv.tv_sec = TIMEOUTSECONDS;
+        (*serviceArray)[i].tv.tv_usec = 0;
+        //insert absolute path
+        /*if( ((*serviceArray)[i].absolutepath = (char *) malloc( (strlen(absolpth)+1) * sizeof(char) )) == NULL)
+        {
+            return -2;
+        }*/
+
+        strcpy((*serviceArray)[i].absolutepath, absolpth);
+    }
+
+    return size + lengthServiceArray;
 }
 
 void deallocateMemoryServices(ServiceDescriptor **serviceArray)
 {
     free(*serviceArray);
+}
+
+
+int getEmptyService(ServiceDescriptor **serviceArray, int length)
+{
+    int i;
+    for (i = 0; i<length; i++)
+    {        
+        if( strcmp("", (*serviceArray)[i].folderName)  == 0 )
+        {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+void clearService(ServiceDescriptor *service)
+{
+    //clean the name of service
+    strcpy(service->folderName, "");
+    
+
 }

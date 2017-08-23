@@ -51,7 +51,7 @@ typedef struct ServiceDescriptor
     char folderName[MAXNAMEFILE]; //name of folder (and service)
     pid_t pid; //pid of creating service
     int pipefd[2]; //pipe of service https://stackoverflow.com/questions/6171552/popen-simultaneous-read-and-write
-    char *absolutepath; //absolutepath of executible file (insert here because thread permit only one parameter to be passed)
+    char absolutepath[500]; //absolutepath of executible file (insert here because thread permit only one parameter to be passed)
 
     pthread_t tid; //thread id
 
@@ -79,7 +79,7 @@ int controlProgramInFolder(char list[MAXSUBFOLDERS][MAXNAMEFILE], int n_folders)
 Insert the name of service (in service) and control if this name is present in list (list of service)
 return <0 if nameservice is not present in list or something not works good
 */ 
-int insertControlNameService(char list[MAXSUBFOLDERS][MAXNAMEFILE], char *nameservice, ServiceDescriptor *service, char *absolpth);
+int insertControlNameService(char list[MAXSUBFOLDERS][MAXNAMEFILE], char *nameservice, ServiceDescriptor *service);
 /**
 Start new Service of existing program in subfolder
 Service passed
@@ -91,15 +91,26 @@ int startService(void *arg);
 
 /**
 Allocates memory for services and does some boring stuff
-size is the new blocks to insert in service array: if all works, return is lenghtServiceArray + size
+size is the new blocks to insert in service array: if all works, return is lengthServiceArray + size
 return  -1 error allocating memory
-        >0 lenght of array
+        >0 length of array
 */
-int allocateMemoryServices(ServiceDescriptor **serviceArray, int lenghtServiceArray, int size);
+int allocateMemoryServices(ServiceDescriptor **serviceArray, int lengthServiceArray, int size, char *absolpth);
 
 /**
 Deallocates memory
 */
 void deallocateMemoryServices(ServiceDescriptor **serviceArray);
+
+/**
+Returns the index of empty service (not used) that can be allocated to start a new service
+return <0 in case of error,
+*/
+int getEmptyService(ServiceDescriptor **serviceArray, int length);
+
+/**
+Clear the specified service
+*/
+void clearService(ServiceDescriptor *service);
 
 #endif

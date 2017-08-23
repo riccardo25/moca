@@ -25,13 +25,17 @@
 #include "libs/fontautil.h"
 #include "libs/fontacommunication.h"
 
-char list[MAXSUBFOLDERS][MAXNAMEFILE];
-int nFoundFolders = 0;
+/*          PROTOTYPES              */
+int startNewService();
+
+/*      GLOBAL VARIABLES            */
+char list[MAXSUBFOLDERS][MAXNAMEFILE]; //list of folders
+int nFoundFolders = 0; //number of folders
 char absolutePath[1000]; //absolute path of executable file
-
 ServiceDescriptor *services; //array of services
-int lenghtServices = 0;//lenght of array services
+int lengthServices = 0;//length of array services
 
+/*          MAIN                    */
 int main(int argc, char** argv)
 {
     //get the full path
@@ -62,40 +66,62 @@ int main(int argc, char** argv)
         exit(3);
     }
 
-    printf("\n----------------------------------\n\n");
-    
     printf("Main process has PID: %d\n", getpid());
 
     printf("Starting service: Allocating memory for services.. " );
     
-    if(( lenghtServices = allocateMemoryServices(&services, lenghtServices, 1) ) < 0)//insert 1 service
+    //allocation is dinamicaly because some calculator can go OUT of RAM, or improve the number of same services 
+    //that you can afford
+    if(( lengthServices = allocateMemoryServices(&services, lengthServices, MAXOPENPIDS, absolutePath) ) < 0)//insert 1 service
     {
          printf(ANSI_COLOR_RED "Error allocating memory!" ANSI_COLOR_RESET "\n");
          return -3;
     }
 
-    printf("DONE\n");
+    printf("DONE.\n\nCan use %d service at the same time!\n", lengthServices);
+    printf("\n----------------------------------\n\n");
 
-    if(insertControlNameService(list, "ciao", &services[0], absolutePath) < 0)//insert 1 service
-    {
-        printf(ANSI_COLOR_RED "Error, name of service not present or not enough space!" ANSI_COLOR_RESET "\n");
-        deallocateMemoryServices(&services);
-        return -4;
-    }
+    startNewService("ciao");
+    startNewService("ciao");
     
-    printf("Inserted name in service %d\nStarting service %d... \n", lenghtServices-1, lenghtServices-1 );
-    
-    
-    //start new thread
-    if( pthread_create( &(services[0].tid), NULL, startService, (void *) &services[0] ) )
-    {
-        printf(ANSI_COLOR_RED "Error creating new thread!" ANSI_COLOR_RESET "\n");
-        deallocateMemoryServices(&services);
-        return -5;
-    }
-
-    sleep(1);
+    pthread_join(services[1].tid, NULL);
     deallocateMemoryServices(&services);
     pthread_exit(NULL);
     return 0;
+}
+
+
+int startNewService(const char *nameservice)
+{
+    int numberofservice = -1;
+    if( (numberofservice = getEmptyService( &services, lengthServices)) <0 )
+    {
+        printf(ANSI_COLOR_RED "Error, no service available!" ANSI_COLOR_RESET "\n");
+
+        return -4;
+    }
+
+    printf("Found free service %d\n", numberofservice);
+    
+    if(insertControlNameService(list, nameservice, &services[numberofservice]) < 0)//insert 1 service
+    {
+        printf(ANSI_COLOR_RED "Error, name of service not present or not enough space!" ANSI_COLOR_RESET "\n");
+
+        return -5;
+    }
+    
+    printf("Inserted name in services %d\nStarting service %d... \n", numberofservice, numberofservice );
+    
+    
+    //start new thread
+    if( pthread_create( &(services[numberofservice].tid), NULL, startService, (void *) &(services[numberofservice]) ) )
+    {
+        printf(ANSI_COLOR_RED "Error creating new thread!" ANSI_COLOR_RESET "\n");
+
+        return -6;
+    }
+
+    return 0;
+
+    
 }
