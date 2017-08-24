@@ -7,6 +7,21 @@
         "iosfwd": "c",
         "xutility": "c",
         "initializer_list": "c",
-        "type_traits": "c"
+        "type_traits": "c",
+        "algorithm": "c",
+        "cmath": "c",
+        "cstddef": "c",
+        "cstdint": "c",
+        "cstdio": "c",
+        "cstdlib": "c",
+        "cstring": "c",
+        "cwchar": "c",
+        "exception": "c",
+        "limits": "c",
+        "new": "c",
+        "utility": "c",
+        "xmemory": "c",
+        "xstddef": "c",
+        "xtr1common": "c"
     }
 }

@@ -49,7 +49,7 @@ int listfolder(char list[MAXSUBFOLDERS][MAXNAMEFILE])
 
 
     closedir(dir);
-    printf("Folders found: %d\n", num_dir);
+    printf("Total folders found: %d\n\n", num_dir);
     return num_dir;
 }
 
@@ -79,6 +79,7 @@ int controlProgramInFolder(char list[MAXSUBFOLDERS][MAXNAMEFILE], int n_folders)
             strcat(pathname, ".exe");
         #endif
 
+        printf("Service found: ");
         printf(pathname);
         printf("\n");
 

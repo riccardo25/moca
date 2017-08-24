@@ -14,19 +14,42 @@
 #include <netinet/in.h> /* struct sockaddr_in, struct sockaddr */
 #include <netdb.h> /* struct hostent, gethostbyname */
 
+#include <pthread.h>
 
 #ifndef _FONTAHTTP_H_
 #define _FONTAHTTP_H_
 
-// value of buffer recived
+// value of buffer recived (iterative beacuse this library download dinamycally)
 #ifndef RCVBUFFER
 #define RCVBUFFER 200
 #endif
 
+//max lenght of message to send
 #ifndef SENDBUFFER
 #define SENDBUFFER 1024
 #endif
 
+//lenght of host
+#ifndef MAXHOSTSIZE
+#define MAXHOSTSIZE 500
+#endif
+
+//seconds to wait in polling cycle of HTTP
+#ifndef WAITSECONDS
+#define WAITSECONDS 5
+#endif
+
+//Type that carry HTTP options
+typedef struct HttpDescriptor
+{
+    struct hostent *server; //server info
+    struct sockaddr_in serv_addr; //socket address
+    int sockfd; //socket file descriptor
+    char host[MAXHOSTSIZE]; //server url 
+    int port; //service port (80)
+    pthread_t tid; //thread id
+
+} HttpDescriptor;
 
 /*
 Allow to open connection
@@ -37,18 +60,18 @@ host -> char sequence of URL
 portno -> number of port (80)
 return < 0 if connection fails
 */
-int openConnection(int *sockfd, struct hostent *server, struct sockaddr_in *serv_addr, const char *host, int portno );
+int openConnection(HttpDescriptor *http);
 
 /*
 Sends msgtosend and put in msgrcv thre response
 return < 0 if something fails and if >= 0 returns the number of bytes recived
 */
-int sendANDrcv(char *msgtosend, char **msgrcv, int sockfd);
+int sendANDrcv(char *msgtosend, char **msgrcv, HttpDescriptor *http);
 
 /*
 Closes the connection 
 */
-void closeConnection(int *sockfd);
+void closeConnection(HttpDescriptor *http);
 
 /*
 Get the header of http message
@@ -61,5 +84,11 @@ Get the body of http message
 returns the size of body,it allocates dinamically the size of body variable
 */
 int getHTTPBody(char *message, char **body);
+
+
+/*
+Starts the poller
+*/
+int startPollHttp(void * arg);
 
 #endif

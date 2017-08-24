@@ -30,6 +30,7 @@
 /*          PROTOTYPES              */
 int startNewService();
 void folderController();
+void startscreen();
 
 /*      GLOBAL VARIABLES            */
 char list[MAXSUBFOLDERS][MAXNAMEFILE]; //list of folders
@@ -37,54 +38,13 @@ int nFoundFolders = 0; //number of folders
 char absolutePath[1000]; //absolute path of executable file
 ServiceDescriptor *services; //array of services
 int lengthServices = 0;//length of array services
-
-int portno =        80;
-char *host =        "www.google.com";
-char *message_fmt = "GET http://%s\r\n\r\n";
-
-struct hostent *server;
-struct sockaddr_in serv_addr;
-int sockfd;
-
+HttpDescriptor http; //poller info
 
 
 /*          MAIN                    */
 int main(int argc, char** argv)
 {
-    int connectionerror = 0;
-
-    if( (connectionerror = openConnection(&sockfd, server, &serv_addr, (const char *) host, 80) ) <0)
-    {
-        printf("Connection error %d\n", connectionerror);
-    }
-
-    printf("Connessione avvenuta\n");
-
-    char messagesend[SENDBUFFER];
-    char *messagerecived;
-
-    sprintf(messagesend, message_fmt, host);
-    int byterecived = 0;
-    
-    if( (byterecived = sendANDrcv(messagesend, &messagerecived, sockfd) ) <0 )
-    {
-        printf("Send or recive error %d\n", byterecived);
-    }
-    else
-    {
-        printf("Recived %s\n\n", messagerecived);
-    }
-    closeConnection(&sockfd);
-
-    char *header;
-    getHTTPBody(messagerecived, &header);
-
-    //free(messagerecived);
-
-    printf("Header %s\n\n", header);
-
-    return 0;
-    
+    startscreen();
     folderController();
 
     printf("Main process has PID: %d\n", getpid());
@@ -98,15 +58,31 @@ int main(int argc, char** argv)
          printf(ANSI_COLOR_RED "Error allocating memory!" ANSI_COLOR_RESET "\n");
          return -3;
     }
+    printf("DONE.\tCan use %d service at the same time!\n", lengthServices);
 
-    printf("DONE.\n\nCan use %d service at the same time!\n", lengthServices);
-    printf("\n----------------------------------\n\n");
+    printf("Now I'm tring to create Poller Service... ");
+    //std data to fill the information of the poller 
+    strcpy(http.host, "www.google.com");
+    http.port = 80;
+    //let's create the thread of poller
+    //start new thread
+    if( pthread_create( &(http.tid), NULL, startPollHttp, (void *) &(http) ) )
+    {
+        printf(ANSI_COLOR_RED "Error creating thread of poller!" ANSI_COLOR_RESET "\n");
 
-    startNewService("ciao");
-    startNewService("ciao");
+        return -7;
+    }
+
+    printf("DONE.\n");
 
     
-    pthread_join(services[1].tid, NULL);
+    printf("\n ---------------------------------------------------------------\n\n");
+
+    startNewService("ciao");
+    startNewService("ciao");
+
+    //wait until the thread of poller is not died
+    pthread_join(http.tid, NULL);
     deallocateMemoryServices(&services);
     pthread_exit(NULL);
 
@@ -152,6 +128,9 @@ int startNewService(const char *nameservice)
 
 void folderController()
 {
+    printf("Now I'm looking into your files to discover new programs...\n");
+
+
     //get the full path
     getcwd(absolutePath, sizeof(absolutePath));
 
@@ -172,11 +151,20 @@ void folderController()
     //section of code that search executive files in found folders
     if( controlProgramInFolder(list, nFoundFolders))
     {
-        printf("All folders OK\n");
+        printf("All folders are checked... And it's OK! Wonderful\n");
     }
     else
     {
         printf("Problem found in folders\n");
         exit(3);
     }
+}
+
+void startscreen()
+{
+    printf(" ---------------------------------------------------------------\n");
+    printf("|\t\t\tWELCOME TO MoCA\t\t\t\t|\n");
+    printf(" ---------------------------------------------------------------\n\n\n");
+    printf("This program is made by Riccardo Fontanini\n\n");
+
 }
