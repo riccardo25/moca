@@ -29,6 +29,7 @@
 
 /*          PROTOTYPES              */
 int startNewService();
+void folderController();
 
 /*      GLOBAL VARIABLES            */
 char list[MAXSUBFOLDERS][MAXNAMEFILE]; //list of folders
@@ -44,6 +45,8 @@ char *message_fmt = "GET http://%s\r\n\r\n";
 struct hostent *server;
 struct sockaddr_in serv_addr;
 int sockfd;
+
+
 
 /*          MAIN                    */
 int main(int argc, char** argv)
@@ -74,40 +77,15 @@ int main(int argc, char** argv)
     closeConnection(&sockfd);
 
     char *header;
-    getHTTPHeader(messagerecived, &header);
+    getHTTPBody(messagerecived, &header);
 
     //free(messagerecived);
 
-    printf("Header %s\n\n", messagerecived);
+    printf("Header %s\n\n", header);
 
     return 0;
-    //get the full path
-    getcwd(absolutePath, sizeof(absolutePath));
-
-    //try to find out program folders 
-    nFoundFolders = listfolder(list);
-
-    if(nFoundFolders <1)
-    {
-        printf("Not found any folder\n");
-        exit(1);
-    }
-    else if ( nFoundFolders >MAXSUBFOLDERS)
-    {
-        printf("Too much folders!\n");
-        exit(2);
-    }
-
-    //section of code that search executive files in found folders
-    if( controlProgramInFolder(list, nFoundFolders))
-    {
-        printf("All folders OK\n");
-    }
-    else
-    {
-        printf("Problem found in folders\n");
-        exit(3);
-    }
+    
+    folderController();
 
     printf("Main process has PID: %d\n", getpid());
 
@@ -131,6 +109,7 @@ int main(int argc, char** argv)
     pthread_join(services[1].tid, NULL);
     deallocateMemoryServices(&services);
     pthread_exit(NULL);
+
     return 0;
 }
 
@@ -168,4 +147,36 @@ int startNewService(const char *nameservice)
     return 0;
 
     
+}
+
+
+void folderController()
+{
+    //get the full path
+    getcwd(absolutePath, sizeof(absolutePath));
+
+    //try to find out program folders 
+    nFoundFolders = listfolder(list);
+
+    if(nFoundFolders <1)
+    {
+        printf("Not found any folder\n");
+        exit(1);
+    }
+    else if ( nFoundFolders >MAXSUBFOLDERS)
+    {
+        printf("Too much folders!\n");
+        exit(2);
+    }
+
+    //section of code that search executive files in found folders
+    if( controlProgramInFolder(list, nFoundFolders))
+    {
+        printf("All folders OK\n");
+    }
+    else
+    {
+        printf("Problem found in folders\n");
+        exit(3);
+    }
 }

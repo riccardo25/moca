@@ -56,4 +56,10 @@ Returns the size of header, it allocates dinamically the size of header variable
 */
 int getHTTPHeader(char *message, char **header);
 
+/*
+Get the body of http message
+returns the size of body,it allocates dinamically the size of body variable
+*/
+int getHTTPBody(char *message, char **body);
+
 #endif

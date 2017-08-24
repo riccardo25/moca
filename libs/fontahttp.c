@@ -106,19 +106,36 @@ int sendANDrcv(char *msgtosend, char **msgrcv, int sockfd)
 int getHTTPHeader(char *message, char **header)
 {
     char *occurrence;
-    
+
     if( (occurrence = strstr(message, "\r\n\r\n")) == NULL )
     {
         return -1;
     }
 
-    int size = message - occurrence;
-    printf("Size %d", size);
+    int size = occurrence- message;
     //create header string (allocates dinamically)
-    *header = (char *) malloc(size+1);
-    
-    strncpy(*header, message, size);
+    *header = (char *) malloc(size+1);  
+    memcpy(*header, message, size);
+    (*header)[size] = 0;
 
-    (*header)[size-1] = 0;
+    return size;
+}
+
+int getHTTPBody(char *message, char **body)
+{
+    char *occurrence;
+
+    if( (occurrence = strstr(message, "\r\n\r\n")) == NULL )
+    {
+        return -1;
+    }
+    
+    int first = occurrence - message + 4;//charaters for header
+    int size = strlen(occurrence) - 4;//4 is for \r\n\r\n
+    //create body string (allocates dinamically)
+    *body = (char *) malloc(size+1);  
+    memcpy(*body, message + first, size);
+    (*body)[size] = 0;
+    
     return size;
 }
