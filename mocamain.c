@@ -23,7 +23,9 @@
 
 
 #include "libs/fontautil.h"
-#include "libs/fontacommunication.h"
+//#include "libs/fontacommunication.h"
+#include "libs/fontahttp.h"
+
 
 /*          PROTOTYPES              */
 int startNewService();
@@ -35,9 +37,50 @@ char absolutePath[1000]; //absolute path of executable file
 ServiceDescriptor *services; //array of services
 int lengthServices = 0;//length of array services
 
+int portno =        80;
+char *host =        "www.google.com";
+char *message_fmt = "GET http://%s\r\n\r\n";
+
+struct hostent *server;
+struct sockaddr_in serv_addr;
+int sockfd;
+
 /*          MAIN                    */
 int main(int argc, char** argv)
 {
+    int connectionerror = 0;
+
+    if( (connectionerror = openConnection(&sockfd, server, &serv_addr, (const char *) host, 80) ) <0)
+    {
+        printf("Connection error %d\n", connectionerror);
+    }
+
+    printf("Connessione avvenuta\n");
+
+    char messagesend[SENDBUFFER];
+    char *messagerecived;
+
+    sprintf(messagesend, message_fmt, host);
+    int byterecived = 0;
+    
+    if( (byterecived = sendANDrcv(messagesend, &messagerecived, sockfd) ) <0 )
+    {
+        printf("Send or recive error %d\n", byterecived);
+    }
+    else
+    {
+        printf("Recived %s\n\n", messagerecived);
+    }
+    closeConnection(&sockfd);
+
+    char *header;
+    getHTTPHeader(messagerecived, &header);
+
+    //free(messagerecived);
+
+    printf("Header %s\n\n", messagerecived);
+
+    return 0;
     //get the full path
     getcwd(absolutePath, sizeof(absolutePath));
 
@@ -83,6 +126,7 @@ int main(int argc, char** argv)
 
     startNewService("ciao");
     startNewService("ciao");
+
     
     pthread_join(services[1].tid, NULL);
     deallocateMemoryServices(&services);

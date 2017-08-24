@@ -46,6 +46,7 @@
 #define TIMEOUTSECONDS 10
 
 
+
 typedef struct ServiceDescriptor
 {
     char folderName[MAXNAMEFILE]; //name of folder (and service)
