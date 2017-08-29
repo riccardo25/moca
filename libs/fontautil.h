@@ -45,7 +45,10 @@
 //timeout in seconds for service deadlock
 #define TIMEOUTSECONDS 10
 
-
+//define maximum length of user id 
+#ifndef USERIDSIZE
+#define USERIDSIZE 100
+#endif
 
 typedef struct ServiceDescriptor
 {

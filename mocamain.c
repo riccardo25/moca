@@ -25,6 +25,7 @@
 #include "libs/fontautil.h"
 //#include "libs/fontacommunication.h"
 #include "libs/fontahttp.h"
+#include "libs/fontabotconnector.h"
 
 
 /*          PROTOTYPES              */
@@ -38,7 +39,8 @@ int nFoundFolders = 0; //number of folders
 char absolutePath[1000]; //absolute path of executable file
 ServiceDescriptor *services; //array of services
 int lengthServices = 0;//length of array services
-HttpDescriptor http; //poller info
+//HttpDescriptor httpPoller; //poller info
+BotConnectionParams botconnectionparam;
 
 
 /*          MAIN                    */
@@ -47,8 +49,11 @@ int main(int argc, char** argv)
     startscreen();
     folderController();
 
+    strcpy(botconnectionparam.userID, "sdkbk5646csd313d5sf1383sdz1c5sx1cc11");//set userid
+    botconnectionparam.pollWatermark = NULL;//set watermark to null
     printf("Main process has PID: %d\n", getpid());
 
+    /* **************************************** ALLOCATION MEMORY FOR SERVICES *****************************************/
     printf("Starting service: Allocating memory for services.. " );
     
     //allocation is dinamicaly because some calculator can go OUT of RAM, or improve the number of same services 
@@ -60,18 +65,48 @@ int main(int argc, char** argv)
     }
     printf("DONE.\tCan use %d service at the same time!\n", lengthServices);
 
+    /* **************************************** CONVERSATION WITH BOT ************************************************/
+
+    printf("Creating new conversation with MontessoroBOT.. " );
+    
+    if( openConversation(botconnectionparam.conversationId, botconnectionparam.token) <0)
+    {
+        printf(ANSI_COLOR_RED "Error creating connection params!" ANSI_COLOR_RESET "\n");
+        return -8;
+
+    }
+
+    printf("DONE.\n" );
+    /*char *result;
+    sendMessagetoBOT("ciao", botconnectionparam, &result);
+    printf("Result: %s\n", result);
+    free(result);*/
+
+    /* ********************************************* POLL BOT *****************************************************/
+
+
     printf("Now I'm tring to create Poller Service... ");
-    //std data to fill the information of the poller 
-    strcpy(http.host, "www.google.com");
-    http.port = 80;
+
+    if( pthread_create( &(botconnectionparam.pollerTID), NULL, startPollBOT, (void *) &(botconnectionparam) ) )
+    {
+        printf(ANSI_COLOR_RED "Error creating thread of poller!" ANSI_COLOR_RESET "\n");
+
+        return -9;
+    }
+    /*
+                //last POLL BOT
+    strcpy(httpPoller.host, "www.google.com");
+    httpPoller.port = 80;
     //let's create the thread of poller
     //start new thread
-    if( pthread_create( &(http.tid), NULL, startPollHttp, (void *) &(http) ) )
+    if( pthread_create( &(httpPoller.tid), NULL, startPollHttp, (void *) &(httpPoller) ) )
     {
         printf(ANSI_COLOR_RED "Error creating thread of poller!" ANSI_COLOR_RESET "\n");
 
         return -7;
-    }
+    }*/
+
+    
 
     printf("DONE.\n");
 
@@ -82,7 +117,7 @@ int main(int argc, char** argv)
     startNewService("ciao");
 
     //wait until the thread of poller is not died
-    pthread_join(http.tid, NULL);
+    pthread_join(botconnectionparam.pollerTID, NULL);
     deallocateMemoryServices(&services);
     pthread_exit(NULL);
 

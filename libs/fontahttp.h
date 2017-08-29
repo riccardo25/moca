@@ -13,8 +13,8 @@
 #include <sys/socket.h> /* socket, connect */
 #include <netinet/in.h> /* struct sockaddr_in, struct sockaddr */
 #include <netdb.h> /* struct hostent, gethostbyname */
-
-#include <pthread.h>
+#include <curl/curl.h>//curl library
+#include <pthread.h> //therading
 
 #ifndef _FONTAHTTP_H_
 #define _FONTAHTTP_H_
@@ -39,6 +39,14 @@
 #define WAITSECONDS 5
 #endif
 
+
+
+typedef struct MemoryStruct {
+    char *memory;
+    size_t size;
+  } MemoryStruct;
+
+
 //Type that carry HTTP options
 typedef struct HttpDescriptor
 {
@@ -51,6 +59,19 @@ typedef struct HttpDescriptor
 
 } HttpDescriptor;
 
+
+
+typedef struct HttpsDescriptor
+{
+    CURL *curl; //curl
+    char host[MAXHOSTSIZE]; //server url 
+    int port; //service port (80)
+    pthread_t tid; //thread id
+
+} HttpsDescriptor;
+
+/* HTTP CONNECTION (NO ENCRYPT) */
+
 /*
 Allow to open connection
 sockfd -> is file descriptor variabile 
@@ -60,18 +81,18 @@ host -> char sequence of URL
 portno -> number of port (80)
 return < 0 if connection fails
 */
-int openConnection(HttpDescriptor *http);
+int openHTTPConnection(HttpDescriptor *http);
 
 /*
 Sends msgtosend and put in msgrcv thre response
 return < 0 if something fails and if >= 0 returns the number of bytes recived
 */
-int sendANDrcv(char *msgtosend, char **msgrcv, HttpDescriptor *http);
+int HTTPsendANDrcv(char *msgtosend, char **msgrcv, HttpDescriptor *http);
 
 /*
 Closes the connection 
 */
-void closeConnection(HttpDescriptor *http);
+void closeHTTPConnection(HttpDescriptor *http);
 
 /*
 Get the header of http message
@@ -86,9 +107,29 @@ returns the size of body,it allocates dinamically the size of body variable
 int getHTTPBody(char *message, char **body);
 
 
-/*
-Starts the poller
+
+/* HTTPS CONNECTION (ENCTYPTED) with curl library */
+
+/* 
+Open the encrypted connection 
 */
-int startPollHttp(void * arg);
+int openHTTPSConnection(HttpsDescriptor *http, struct curl_slist *list);
+
+/*
+Sends sendbody and put in bodyrcv thre response
+return < 0 if something fails and if >= 0 returns the number of bytes recived
+*/
+int HTTPSsendANDrcv(char *sendbody, char **bodyrcv, HttpsDescriptor *http);
+
+/*
+Closes the encrypted connection 
+*/
+void closeHTTPSConnection(HttpsDescriptor *http);
+
+/*
+Used to copy curl return in memory
+*/
+size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp);
+
 
 #endif

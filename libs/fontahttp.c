@@ -1,7 +1,7 @@
 #include "fontahttp.h"
 
 
-int openConnection(HttpDescriptor *http)
+int openHTTPConnection(HttpDescriptor *http)
 {
     // create the socket 
     if( (http->sockfd = socket(AF_INET, SOCK_STREAM, 0)) <0 )
@@ -37,7 +37,7 @@ int openConnection(HttpDescriptor *http)
 }
 
 
-void closeConnection(HttpDescriptor *http)
+void closeHTTPConnection(HttpDescriptor *http)
 {
     /* close the socket */
     close(http->sockfd);
@@ -45,7 +45,7 @@ void closeConnection(HttpDescriptor *http)
 }
 
 
-int sendANDrcv(char *msgtosend, char **msgrcv, HttpDescriptor *http)
+int HTTPsendANDrcv(char *msgtosend, char **msgrcv, HttpDescriptor *http)
 {
     int lentosend = strlen(msgtosend);
 
@@ -141,52 +141,87 @@ int getHTTPBody(char *message, char **body)
     return size;
 }
 
-int startPollHttp(void * arg)
+//-------------------------------------------
+
+int openHTTPSConnection(HttpsDescriptor *http, struct curl_slist *list)
 {
-
-    HttpDescriptor *httpdesc = (HttpDescriptor *) arg;
-    while(1)
+    //initialize curl
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+    if( (http->curl = curl_easy_init()) == NULL)
     {
+        //cannot initialize curl
+        return -1;
+    }
+    //insert parameters
+    curl_easy_setopt(http->curl, CURLOPT_URL, http->host);
+    curl_easy_setopt(http->curl, CURLOPT_POST, 1);
+    curl_easy_setopt(http->curl, CURLOPT_HTTPHEADER, list);
+    //setup verification of secure server
+    //curl_easy_setopt(http->curl, CURLOPT_SSL_VERIFYPEER, 0L);
+    //verify the host  name
+    //curl_easy_setopt(http->curl, CURLOPT_SSL_VERIFYHOST, 0L);
+    /* send all data to this function  */
+    //curl_easy_setopt(http->curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
 
+    return 0;
 
-        sleep(WAITSECONDS);
+}
 
-        int connectionerror = 0;
-        //try to open connection
-        if( (connectionerror = openConnection(httpdesc) ) <0)
-        {
-            printf("Connection error %d\n", connectionerror);
-        }
-        //if connection is OK
-        char messagesend[SENDBUFFER];
-        char *messagerecived; //the buffer of recived data is dynamic
-        char *message_fmt = "GET http://%s\r\n\r\n";//this is the format to follow
-        sprintf(messagesend, message_fmt, httpdesc->host);
-
-        int byterecived = 0;
-        //send and recive message
-        if( (byterecived = sendANDrcv(messagesend, &messagerecived, httpdesc) ) <0 || connectionerror < 0)
-        {
-            printf("Send or recive error %d\n", byterecived);
-        }
-        else
-        {
-            printf("Recived %s\n\n", messagerecived);
-        }
-
-        //connection is not longer needed
-        closeConnection(httpdesc);
-
-        //do someting with message recived
-        char *header;
-        getHTTPBody(messagerecived, &header);
-
-        //frees the RAM
-        free(messagerecived);
-        free(header);
-        printf("Header %s\n\n", header);
+int HTTPSsendANDrcv(char *sendbody, char **bodyrcv, HttpsDescriptor *http)
+{
+    if(http->curl == NULL)
+    {
+        //curl is null
+        return -1;
+    }
+    CURLcode res;
+    MemoryStruct mem;
+    //allocate  byte (other allocated dinamically)
+    mem.size = 0;
+    mem.memory = (char *) malloc(1);
+    /* we pass our memory struct to the callback function */
+    //curl_easy_setopt(http->curl, CURLOPT_WRITEDATA, (void *)&(mem));
+    printf("prima di perform\n");
+    if( (res = curl_easy_perform(http->curl)) != CURLE_OK)
+    {
+        //someting goes wrong
+        fprintf(stderr, "curl_easy_perform() failed: \n");
+        return -2;
     }
 
-    pthread_exit(NULL);
-    exit(1);
+    printf("send fatto\n");
+
+    return mem.size;
+}
+
+void closeHTTPSConnection(HttpsDescriptor *http)
+{
+    if(http->curl != NULL)
+    {
+        /* cleanup curl stuff */
+        curl_easy_cleanup(http->curl);
+    }
+
+    /* we're done with libcurl, so clean it up */
+    curl_global_cleanup();
+}
+
+
+size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
+{
+  size_t realsize = size * nmemb;
+  struct MemoryStruct *mem = (struct MemoryStruct *)userp;
+ 
+  mem->memory = realloc(mem->memory, mem->size + realsize + 1);
+  if(mem->memory == NULL) {
+    /* out of memory! */ 
+    printf("not enough memory (realloc returned NULL)\n");
+    return 0;
+  }
+ 
+  memcpy(&(mem->memory[mem->size]), contents, realsize);
+  mem->size += realsize;
+  mem->memory[mem->size] = 0;
+ 
+  return realsize;
 }
