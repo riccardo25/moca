@@ -37,6 +37,7 @@ void startscreen();
 char list[MAXSUBFOLDERS][MAXNAMEFILE]; //list of folders
 int nFoundFolders = 0; //number of folders
 char absolutePath[1000]; //absolute path of executable file
+char UserID[] = "119926";
 ServiceDescriptor *services; //array of services
 int lengthServices = 0;//length of array services
 //HttpDescriptor httpPoller; //poller info
@@ -48,9 +49,8 @@ int main(int argc, char** argv)
 {
     startscreen();
     folderController();
-
     strcpy(botconnectionparam.userID, "sdkbk5646csd313d5sf1383sdz1c5sx1cc11");//set userid
-    botconnectionparam.pollWatermark = NULL;//set watermark to null
+    botconnectionparam.pollWatermark[0] = 0;//set watermark to empty string
     printf("Main process has PID: %d\n", getpid());
 
     /* **************************************** ALLOCATION MEMORY FOR SERVICES *****************************************/
@@ -76,14 +76,16 @@ int main(int argc, char** argv)
 
     }
 
-    printf("DONE.\n" );
-    /*char *result;
+    printf(ANSI_COLOR_GREEN "DONE.\n" ANSI_COLOR_RESET);
+    
+    char *result;
     sendMessagetoBOT("ciao", botconnectionparam, &result);
     printf("Result: %s\n", result);
-    free(result);*/
+    free(result);
 
     /* ********************************************* POLL BOT *****************************************************/
 
+    
 
     printf("Now I'm tring to create Poller Service... ");
 
@@ -93,6 +95,7 @@ int main(int argc, char** argv)
 
         return -9;
     }
+
     /*
                 //last POLL BOT
     strcpy(httpPoller.host, "www.google.com");
@@ -105,11 +108,18 @@ int main(int argc, char** argv)
 
         return -7;
     }*/
+    printf(ANSI_COLOR_GREEN "DONE.\n" ANSI_COLOR_RESET);
 
+    /* ****************************************** SEND INFO TO MYSQL ************************************************/
+
+    printf("Now I'm tring to publish informations to Database... ");
     
-
-    printf("DONE.\n");
-
+    if(publishMySQLInfo(UserID, botconnectionparam.conversationId) <0)
+    {
+        printf(ANSI_COLOR_RED "Error sending MySQL informations!" ANSI_COLOR_RESET "\n");
+        return -12;
+    }
+    printf(ANSI_COLOR_GREEN "DONE.\n" ANSI_COLOR_RESET);
     
     printf("\n ---------------------------------------------------------------\n\n");
 
@@ -145,8 +155,6 @@ int startNewService(const char *nameservice)
     }
     
     printf("Inserted name in services %d\nStarting service %d... \n", numberofservice, numberofservice );
-    
-    
     //start new thread
     if( pthread_create( &(services[numberofservice].tid), NULL, startService, (void *) &(services[numberofservice]) ) )
     {
@@ -202,4 +210,48 @@ void startscreen()
     printf(" ---------------------------------------------------------------\n\n\n");
     printf("This program is made by Riccardo Fontanini\n\n");
 
+}
+
+int publishMySQLInfo(char *UserID, char *MoCAConversation)
+{
+    //create connection
+    HttpDescriptor mysqlAPI;
+    strcpy(mysqlAPI.host, "www.riccardofonta.altervista.org");
+    mysqlAPI.port = 80;
+    char getRequest[800];
+    char servicesstring[500];
+    
+    //serialize all services
+    int i = 0;
+    for(i= 0; i<nFoundFolders; i++)
+    {
+        if(i != 0)
+            strcat(servicesstring, ",");
+        strcat(servicesstring, list[i]);
+    }
+    //create get request
+    sprintf(getRequest, "GET http://riccardofonta.altervista.org/montessorobot/?Function=insert&UserID=%s&MoCAConversationID=%s&Services=%s\r\n\r\n", UserID, MoCAConversation, servicesstring);
+    int t = 0;
+    //open connection
+    if( (t = openHTTPConnection(&mysqlAPI)) < 0)
+    {
+        
+        return -10;
+    }
+    //try to send GET to Riccardo Fontanini API
+    char *rcv;
+    if( HTTPsendANDrcv(getRequest, &rcv, &mysqlAPI) <0)
+    {
+        
+        return -11;
+    }
+    //closing connection
+    closeHTTPConnection(&mysqlAPI);
+    //if there is an error
+    if(strcmp(rcv, "{\"Execution\":\"Done\"}") != 0)
+    {
+        return -13;
+    }
+    free(rcv);
+    return 0;
 }

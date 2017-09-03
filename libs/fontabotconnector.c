@@ -192,8 +192,11 @@ int sendMessagetoBOT(char *message, BotConnectionParams conn, char **result)
         curl_easy_setopt(curl, CURLOPT_URL, url); //default API
         curl_easy_setopt(curl, CURLOPT_POST, 1);
         printf("Url to send message: %s\n", url);
+
+        
         char token[500];
         sprintf(token, "Authorization: Bearer %s", conn.token);
+        printf(token);
         list = curl_slist_append(list, token); //authorization, app secret
         list = curl_slist_append(list, "Content-Type: application/json");   
         char length[100];
@@ -250,14 +253,14 @@ int startPollBOT(void *arg)
         curl_global_init(CURL_GLOBAL_DEFAULT); //setup curl options
         curl = curl_easy_init();
         struct curl_slist *list = NULL;
-        char *re;
+        /*char *re;
         int test = 0;
         if( (test = sendMessagetoBOT("come va?", *params, &re) ) < 0)
         {
             printf("Errore %d", test);
         }
         printf("%s\n", re);
-        free(re);
+        free(re);*/
 
         if(params->conversationId == NULL)
         {
@@ -269,7 +272,16 @@ int startPollBOT(void *arg)
         if (curl)
         {
             char url[500];
-            sprintf(url, "https://directline.botframework.com/v3/directline/conversations/%s/activities", params->conversationId);
+            if(strlen(params->pollWatermark) > 0)
+            {
+                sprintf(url, "https://directline.botframework.com/v3/directline/conversations/%s/activities?watermark=%s", params->conversationId, params->pollWatermark);
+            }
+            else
+            {
+                sprintf(url, "https://directline.botframework.com/v3/directline/conversations/%s/activities", params->conversationId);
+            }
+
+            
             curl_easy_setopt(curl, CURLOPT_URL, url); //default API
             char token[500];
             sprintf(token, "Authorization: Bearer %s", params->token);
@@ -299,7 +311,27 @@ int startPollBOT(void *arg)
             result[(long)chunk.size] = 0;//put last charater to null
             free(chunk.memory); //free the memory
             printf("Data:%s\n", result);
+
+            struct json_object *jobj = NULL;
+    
+            if ((jobj = json_tokener_parse(result)) == NULL)
+            {
+                //error parsing
+                pthread_exit(-4);
+                exit(1);
+            }
+            struct json_object *val = NULL;
+            //search conversation ID
+            if ((val = json_object_object_get(jobj, "watermark")) != NULL)
+            {
+                if (strlen(json_object_get_string(val)) < WATERMARKSIZE)
+                    strcpy(params->pollWatermark, json_object_get_string(val));
+                printf("watermark %s\n", params->pollWatermark);
+            }
+            free(val);
+
             /* always cleanup */
+            free(jobj);
             curl_easy_cleanup(curl);
             free(result);
             curl_global_cleanup();
