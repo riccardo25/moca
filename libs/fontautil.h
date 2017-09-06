@@ -5,7 +5,6 @@
     Note:   This library is used to group some useful function like, list folders ...
 
 */
-
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -50,6 +49,21 @@
 #define USERIDSIZE 100
 #endif
 
+//maximum conversation id size
+#ifndef CONVERSATIONIDSIZE
+#define CONVERSATIONIDSIZE 200
+#endif
+
+//max token size
+#ifndef TOKENSIZE
+#define TOKENSIZE 200
+#endif
+
+//max watermark size
+#ifndef WATERMARKSIZE
+#define WATERMARKSIZE 20
+#endif
+
 typedef struct ServiceDescriptor
 {
     char folderName[MAXNAMEFILE]; //name of folder (and service)
@@ -61,6 +75,11 @@ typedef struct ServiceDescriptor
 
     fd_set rfds; //non blocking api (timeout implementation)
     struct timeval tv; //timeout structure
+
+    char collateralConversationID[CONVERSATIONIDSIZE]; //id of collateral conversation
+    char collateralConversationToken[TOKENSIZE];
+    char collateralConversationWatermark[WATERMARKSIZE];
+    char userID[USERIDSIZE];
 
 
 } ServiceDescriptor;
@@ -84,14 +103,7 @@ Insert the name of service (in service) and control if this name is present in l
 return <0 if nameservice is not present in list or something not works good
 */ 
 int insertControlNameService(char list[MAXSUBFOLDERS][MAXNAMEFILE], char *nameservice, ServiceDescriptor *service);
-/**
-Start new Service of existing program in subfolder
-Service passed
-Return <0 there is an error:    -1 is pipeline creating problem
-                                -2 is fork creating problem
 
-*/
-int startService(void *arg);
 
 /**
 Allocates memory for services and does some boring stuff
@@ -112,9 +124,6 @@ return <0 in case of error,
 */
 int getEmptyService(ServiceDescriptor **serviceArray, int length);
 
-/**
-Clear the specified service
-*/
-void clearService(ServiceDescriptor *service);
+
 
 #endif

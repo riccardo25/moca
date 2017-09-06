@@ -23,6 +23,7 @@
         "xmemory": "c",
         "xstddef": "c",
         "xtr1common": "c",
-        "fontabotconnector.h": "c"
+        "fontabotconnector.h": "c",
+        "fontamocaprotclient.h": "c"
     }
 }

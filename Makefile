@@ -5,6 +5,7 @@ OBJECTS=
 CC=gcc
 
 CFLAGS= -g -Wall
+FONTAMOCAPROTCLIENT = build/linux/fontamocaprotclient.o
 FONTAUTILO= build/linux/fontautil.o
 FONTACOMMUNICATIONO= build/linux/fontacommunication.o
 FONTAHTTP = build/linux/fontahttp.o
@@ -12,7 +13,10 @@ FONTABOTCONNECTOR = build/linux/fontabotconnector.o
 NAMEFILE= mocamain.c
 PROGRAM_NAME=moca
 
-LIBS = $(FONTAUTILO) $(FONTABOTCONNECTOR) $(FONTAHTTP) -lpthread -lcurl -ljson -std=gnu99
+LIBS = $(FONTAMOCAPROTCLIENT) $(FONTAUTILO) $(FONTABOTCONNECTOR) $(FONTAHTTP) -lpthread -lcurl -ljson -std=gnu99
+
+fontamocaprotclient:
+	$(CC) $(CFLAGS) -o $(FONTAMOCAPROTCLIENT) -c libs/fontaMoCAProtClient.c
 
 fontabotconnector:
 	$(CC) $(CFLAGS) -o $(FONTABOTCONNECTOR) -c libs/fontabotconnector.c -ljson -std=gnu99
@@ -26,7 +30,7 @@ fontacommunication:
 fontautil:
 	$(CC) $(CFLAGS) -o $(FONTAUTILO) -c libs/fontautil.c -lpthread
 
-$(PROGRAM_NAME): fontautil fontahttp fontabotconnector
+$(PROGRAM_NAME): fontautil fontahttp fontabotconnector fontamocaprotclient
 	@mkdir -p build/linux
 	$(CC) $(CFLAGS) $(NAMEFILE) -o build/linux/$(PROGRAM_NAME) $(OBJECTS) $(LIBS)
 	@echo " "

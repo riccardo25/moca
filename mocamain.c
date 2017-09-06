@@ -29,9 +29,10 @@
 
 
 /*          PROTOTYPES              */
-int startNewService();
+int startNewService(const char *nameservice,struct MoCAMessage calledMessage);
 void folderController();
 void startscreen();
+void createServiceCollateralBOTConnector(struct MoCAMessage message);
 
 /*      GLOBAL VARIABLES            */
 char list[MAXSUBFOLDERS][MAXNAMEFILE]; //list of folders
@@ -51,6 +52,7 @@ int main(int argc, char** argv)
     folderController();
     strcpy(botconnectionparam.userID, "sdkbk5646csd313d5sf1383sdz1c5sx1cc11");//set userid
     botconnectionparam.pollWatermark[0] = 0;//set watermark to empty string
+    botconnectionparam.handler = createServiceCollateralBOTConnector;//insert hendler when POLLBOT receive a service request
     printf("Main process has PID: %d\n", getpid());
 
     /* **************************************** ALLOCATION MEMORY FOR SERVICES *****************************************/
@@ -79,7 +81,7 @@ int main(int argc, char** argv)
     printf(ANSI_COLOR_GREEN "DONE.\n" ANSI_COLOR_RESET);
     
     char *result;
-    sendMessagetoBOT("ciao", botconnectionparam, &result);
+    sendMessagetoBOT(startMainCOnversation(), botconnectionparam, &result);
     printf("Result: %s\n", result);
     free(result);
 
@@ -123,8 +125,8 @@ int main(int argc, char** argv)
     
     printf("\n ---------------------------------------------------------------\n\n");
 
-    startNewService("ciao");
-    startNewService("ciao");
+    //startNewService("ciao");
+    //startNewService("ciao");
 
     //wait until the thread of poller is not died
     pthread_join(botconnectionparam.pollerTID, NULL);
@@ -135,8 +137,9 @@ int main(int argc, char** argv)
 }
 
 
-int startNewService(const char *nameservice)
+int startNewService(const char *nameservice, struct MoCAMessage calledMessage)
 {
+    
     int numberofservice = -1;
     if( (numberofservice = getEmptyService( &services, lengthServices)) <0 )
     {
@@ -153,13 +156,19 @@ int startNewService(const char *nameservice)
 
         return -5;
     }
-    
+
+    //copy the connection parameters
+    strcpy(services[numberofservice].collateralConversationID, calledMessage.params[0]);
+    strcpy(services[numberofservice].collateralConversationToken, calledMessage.params[1]);
+    strcpy(services[numberofservice].collateralConversationWatermark, "0");
+    strcpy(services[numberofservice].userID , UserID);
+
+
     printf("Inserted name in services %d\nStarting service %d... \n", numberofservice, numberofservice );
     //start new thread
     if( pthread_create( &(services[numberofservice].tid), NULL, startService, (void *) &(services[numberofservice]) ) )
     {
         printf(ANSI_COLOR_RED "Error creating new thread!" ANSI_COLOR_RESET "\n");
-
         return -6;
     }
 
@@ -254,4 +263,10 @@ int publishMySQLInfo(char *UserID, char *MoCAConversation)
     }
     free(rcv);
     return 0;
+}
+
+
+void createServiceCollateralBOTConnector(struct MoCAMessage message)
+{
+    startNewService(message.params[2], message); //third parameter is the name of service
 }
