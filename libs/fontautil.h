@@ -42,7 +42,7 @@
 //maximum size of buffer in ServiceDescriptor
 #define MAXBUFFERSIZE 255
 //timeout in seconds for service deadlock
-#define TIMEOUTSECONDS 10
+#define TIMEOUTSECONDS 30
 
 //define maximum length of user id 
 #ifndef USERIDSIZE
@@ -64,6 +64,36 @@
 #define WATERMARKSIZE 20
 #endif
 
+//max read attempt
+#ifndef MAXREADFROMSERVICEATTEMPTS
+#define MAXREADFROMSERVICEATTEMPTS 5
+#endif
+
+/*
+#ifndef DEBUG
+#define DEBUG 1
+#endif
+
+#ifndef DEBUGFONTABOTCONNECTOR
+#define DEBUGFONTABOTCONNECTOR
+#endif
+*/
+//debug data from collateral conversation
+#ifndef DEBUGDATACOLLATERALCONVERSATION
+#define DEBUGDATACOLLATERALCONVERSATION
+#endif
+
+//debug what i need to write in service (message from collateral)
+#ifndef DEBUGWRITEINSERVICE
+#define DEBUGWRITEINSERVICE
+#endif
+
+//debug message sent to bot
+#ifdef DEBUGSENDMESSAGETOBOT
+#define DEBUGSENDMESSAGETOBOT
+#endif
+
+
 typedef struct ServiceDescriptor
 {
     char folderName[MAXNAMEFILE]; //name of folder (and service)
@@ -80,7 +110,6 @@ typedef struct ServiceDescriptor
     char collateralConversationToken[TOKENSIZE];
     char collateralConversationWatermark[WATERMARKSIZE];
     char userID[USERIDSIZE];
-
 
 } ServiceDescriptor;
 
@@ -123,6 +152,27 @@ Returns the index of empty service (not used) that can be allocated to start a n
 return <0 in case of error,
 */
 int getEmptyService(ServiceDescriptor **serviceArray, int length);
+
+/**
+Writes in SERVICE contenent of 'buffer'
+returns <0 ->   -1 parameters error
+                -2 not allowed to open files
+                -3 buffer empty
+return >= 0 if not error found, lenght of buffer wrote
+*/
+int mocaWriteinService(struct ServiceDescriptor *service, const char *buffer);
+
+/**
+Reads from SERVICE's buffer file
+
+return < 0      -1 parameters error
+                -2 can not open file
+                -3 general error, something goes wrong
+                -4 no file to read, nothing to read
+return >= 0     number of bytes red ( no error found )
+
+*/
+int mocaReadfromService(struct ServiceDescriptor *service, char *buffer, int sizeBuffer);
 
 
 

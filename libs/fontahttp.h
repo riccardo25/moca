@@ -39,6 +39,11 @@
 #define WAITSECONDS 5
 #endif
 
+//seconds to wait in polling cycle of Collateral conversation
+#ifndef WAITCOLLATERALPOLLSECONDS
+#define WAITCOLLATERALPOLLSECONDS 3
+#endif
+
 
 
 typedef struct MemoryStruct {

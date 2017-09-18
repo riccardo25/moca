@@ -24,6 +24,7 @@
         "xstddef": "c",
         "xtr1common": "c",
         "fontabotconnector.h": "c",
-        "fontamocaprotclient.h": "c"
+        "fontamocaprotclient.h": "c",
+        "stdlib.h": "c"
     }
 }

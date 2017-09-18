@@ -65,7 +65,8 @@ int main(int argc, char** argv)
          printf(ANSI_COLOR_RED "Error allocating memory!" ANSI_COLOR_RESET "\n");
          return -3;
     }
-    printf("DONE.\tCan use %d service at the same time!\n", lengthServices);
+    printf(ANSI_COLOR_GREEN "DONE." ANSI_COLOR_RESET);
+    printf("\tCan use %d service at the same time!\n", lengthServices);
 
     /* **************************************** CONVERSATION WITH BOT ************************************************/
 
@@ -80,16 +81,21 @@ int main(int argc, char** argv)
 
     printf(ANSI_COLOR_GREEN "DONE.\n" ANSI_COLOR_RESET);
     
+
+    /****************************************** SENDING INFORMATION TO BOT *************************************/
+    
+    printf("Sending information to bot.. " );
     char *result;
     sendMessagetoBOT(startMainCOnversation(), botconnectionparam, &result);
-    printf("Result: %s\n", result);
+    //printf("Result: %s\n", result);
     free(result);
+    printf(ANSI_COLOR_GREEN "DONE.\n" ANSI_COLOR_RESET);
 
     /* ********************************************* POLL BOT *****************************************************/
 
     
 
-    printf("Now I'm tring to create Poller Service... ");
+    printf("Creating Poller Service... ");
 
     if( pthread_create( &(botconnectionparam.pollerTID), NULL, startPollBOT, (void *) &(botconnectionparam) ) )
     {
@@ -112,9 +118,19 @@ int main(int argc, char** argv)
     }*/
     printf(ANSI_COLOR_GREEN "DONE.\n" ANSI_COLOR_RESET);
 
+
+    /**************************************** START POLL COLLATERAL CONVERSATION **********************************/
+    printf("Creating collateral conversation poller... ");
+    if( pthread_create( &(botconnectionparam.pollerCollateralConversationID), NULL, startPollCollateralConversationBOT, (void *) services ) )
+    {
+        printf(ANSI_COLOR_RED "Error creating thread of collateral conversation poller!" ANSI_COLOR_RESET "\n");
+
+        return -9;
+    }
+    printf(ANSI_COLOR_GREEN "DONE.\n" ANSI_COLOR_RESET);
     /* ****************************************** SEND INFO TO MYSQL ************************************************/
 
-    printf("Now I'm tring to publish informations to Database... ");
+    printf("Publishing informations to Database... ");
     
     if(publishMySQLInfo(UserID, botconnectionparam.conversationId) <0)
     {

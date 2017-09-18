@@ -151,6 +151,10 @@ int startPollHttp(void *arg)
 
 int sendMessagetoBOT(char *message, BotConnectionParams conn, char **result)
 {
+    printf("Sending %s\n", message);
+    #ifdef DEBUGSENDMESSAGETOBOT
+    printf("Sending %s\n", message);
+    #endif
     CURL *curl;
     CURLcode res;                          //code of curl
     struct MemoryStruct chunk;             //variable to pass contenent and size of message
@@ -389,7 +393,10 @@ int startPollBOT(void *arg)
             memcpy(result, chunk.memory, (long)chunk.size);
             result[(long)chunk.size] = 0; //put last charater to null
             free(chunk.memory);           //free the memory
+
+            #ifdef DEBUGDATAPRINCIPALCONVERSATION
             printf("Data:%s\n", result);
+            #endif
 
             struct json_object *jobj = NULL;
 
@@ -422,14 +429,16 @@ int startPollBOT(void *arg)
                             struct MoCAMessage mocamessage;
                             if( readMoCAProtMessage(json_object_get_string(text), &mocamessage) <= 0)
                             {
+                                #ifdef DEBUGDATAPRINCIPALCONVERSATION
                                 printf("Not recognized \n");
+                                #endif
                             }
                             else
                             {
                                 //if BOT has created a collateral conversation
                                 if(mocamessage.type == MOCACREATEDCOLLATERAL)
                                 {
-                                    printf("Token: %s\n", mocamessage.params[1]);
+                                    printf("Created collateral with Token: %s\n", mocamessage.params[1]);
                                     params->handler(mocamessage);
                                 }
                                 
@@ -456,7 +465,9 @@ int startPollBOT(void *arg)
                 } 
             }
 
+            #ifdef DEBUGDATAPRINCIPALCONVERSATION
             printf("watermark %s\n", params->pollWatermark);
+            #endif
             free(val);
 
             /* always cleanup */
@@ -527,7 +538,7 @@ int startService(void *arg)
             strcat(programPath, ".exe");
         #endif
 
-        execl(programPath, "", (char*) NULL);
+        execl(programPath, "",  service->collateralConversationID, (char*) NULL);
         // Nothing below this line should be executed by child process. If so, 
         // it means that the execl function wasn't successfull, so lets exit:
         close(service->pipefd[0]);
@@ -542,7 +553,7 @@ int startService(void *arg)
 
     // Now, you can write to the process using pipefd[1], and read from pipefd[0]:
 
-    #ifdef BLOCKINGAPI
+    #ifdef USEPOLL
         /*int bytesRead = 0;
 
         while(( bytesRead = read(pipefd[0], buf, sizeof(buf))) > 0)
@@ -561,7 +572,7 @@ int startService(void *arg)
         FD_ZERO( &(service->rfds) );
         FD_SET( service->pipefd[0], &(service->rfds) );
 
-        /* Wait up to five seconds. */
+        /* Wait up to n seconds. */
         service->tv.tv_sec = TIMEOUTSECONDS;
         service->tv.tv_usec = 0;
 
@@ -569,27 +580,53 @@ int startService(void *arg)
         //create buffer to read
         char buf[MAXBUFFERSIZE];
         //TIMEOUT implementation, firstly wait for pipe change with select
+
+
+        #ifdef OLDPROGRAM
         while( (selectResult = select( (service->pipefd[0])+1, &(service->rfds), NULL, NULL, &(service->tv) )) > 0 )
         {
+            printf("In attesa di lettura...\n");
             //reading the file
             if( (bytesRead = read(service->pipefd[0], buf, sizeof(buf))) >0)
+            //if( (bytesRead = fread(buf, 1, MAXBUFFERSIZE-1, service->pipefd[0]) ) )
             {
-                /*printf("Letto :");
-                printf(buf);
-                printf("\n");*/
+
+                #ifdef DEBUGDATAPRINCIPALCONVERSATION
+                    printf("Letto %d:\n", bytesRead);
+                    printf(buf);
+                    printf("\n");
+                #endif
                 char *result;
                 char standardcollateral[] = "/collateralclient";
                 char newbuf[strlen(buf)+strlen(standardcollateral)+1];
                 sprintf(newbuf, "%s%s", standardcollateral, buf);
-                
-
                 sendMessagetoBOT(newbuf, collateralConnectionParams, &result);
-                printf("%s\n", result);
-
                 free(result);
             }
 
         }
+        #else
+
+        int numofread= 0;
+        char buffer[5000];
+        for(numofread = 0; numofread < 20; numofread++)
+        {
+            int tot = mocaReadfromService(service, buffer, 5000);
+            if(tot > 0 )
+            {
+                printf("%s letti: %d %s\n",service->folderName, tot, buffer);
+                numofread = 0;
+                char *result;
+                char standardcollateral[] = "/collateralclient";
+                char newbuf[tot+strlen(standardcollateral)+1];
+                sprintf(newbuf, "%s%s", standardcollateral, buffer);
+                sendMessagetoBOT(newbuf, collateralConnectionParams, &result);
+                free(result);
+            }
+            usleep(1000000);
+                
+        }
+        #endif
 
         if(selectResult == 0)
         {
@@ -631,4 +668,176 @@ void clearService(ServiceDescriptor *service)
     strcpy(service->collateralConversationToken, "");
     strcpy(service->collateralConversationWatermark, "0");
     strcpy(service->userID , "");
+}
+
+void startPollCollateralConversationBOT(void *arg)
+{
+    //cast arguments
+    ServiceDescriptor *services = (ServiceDescriptor *) arg;
+
+    while(1)
+    {
+        int s;
+
+        sleep(WAITCOLLATERALPOLLSECONDS);
+
+        for(s = 0; s < MAXOPENPIDS; s++)
+        {
+            //if there is no service available to this s iterator, there are no others services available, so I can exit from the cycle
+            if(services[s].collateralConversationID == NULL || strcmp(services[s].collateralConversationID, "") <= 0)
+            {
+                break;
+            }
+            /** START POLLING CONVERSATION **/
+            CURL *curl;
+            CURLcode res;                          //code of curl
+            struct MemoryStruct chunk;             //variable to pass contenent and size of message
+            chunk.memory = malloc(1);              /* will be grown as needed by the realloc above */
+            chunk.size = 0;                        /* no data at this point */
+            curl_global_init(CURL_GLOBAL_DEFAULT); //setup curl options
+            curl = curl_easy_init();
+            struct curl_slist *list = NULL;
+                
+            if (curl)
+            {
+                char url[500];
+                if (strlen(services[s].collateralConversationWatermark) > 0)
+                {
+                    sprintf(url, "https://directline.botframework.com/v3/directline/conversations/%s/activities?watermark=%s", services[s].collateralConversationID, services[s].collateralConversationWatermark);
+                }
+                else
+                {
+                    sprintf(url, "https://directline.botframework.com/v3/directline/conversations/%s/activities", services[s].collateralConversationID);
+                }
+    
+                curl_easy_setopt(curl, CURLOPT_URL, url); //default API
+                char token[500];
+                sprintf(token, "Authorization: Bearer %s", services[s].collateralConversationToken);
+                list = curl_slist_append(list, token); //authorization, app secret
+                curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
+                curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
+                /* we pass our 'chunk' struct to the callback function */
+                curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&chunk);
+                curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L); //verify peer
+                curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L); //and verify host
+                //perform curl get
+                if ((res = curl_easy_perform(curl)) != CURLE_OK)
+                {
+                    fprintf(stderr, "poll failed: %s\n", curl_easy_strerror(res));
+                    break;
+                }
+    
+                char *result;
+                if ((result = (char *)malloc((long)chunk.size + 1)) == NULL) //allocate data
+                {
+                    fprintf(stderr, "can not allocate memory for response\n");
+                    break;
+                }
+                //copy value
+                memcpy(result, chunk.memory, (long)chunk.size);
+                result[(long)chunk.size] = 0; //put last charater to null
+                free(chunk.memory);           //free the memory
+
+                #ifdef DEBUGDATACOLLATERALCONVERSATION
+                    printf("Data from conversation %s :%s\n",services[s].collateralConversationID, result);
+                #endif
+
+                struct json_object *jobj = NULL;
+    
+                if ((jobj = json_tokener_parse(result)) == NULL)
+                {
+                    fprintf(stderr, "Error parsing result of polling");
+                    break;
+                }
+                
+    
+                //search array
+                json_object *arr = NULL;
+                int n_messages = 0;//number of messages in te activities
+                if ((arr = json_object_object_get(jobj, "activities")) != NULL)
+                {
+                    n_messages = json_object_array_length(arr);
+                    int i  = 0;
+                    //get i message (in jason format)
+                    for (i =0; i<n_messages; i++)
+                    {
+                        json_object *jsonmess = NULL;
+                        if((jsonmess = json_object_array_get_idx(arr, i)) != NULL )
+                        {
+                            struct json_object *text = NULL;
+                            //search text field
+                            if ((text = json_object_object_get(jsonmess, "text")) != NULL)
+                            {
+                                //if it starts with /collateralbot: the message comes from BOT
+                                if(strncmp("/collateralbot", json_object_get_string(text), strlen("/collateralbot")) == 0)
+                                {
+                                    #ifdef DEBUGWRITEINSERVICE
+                                    printf("let's writing stuff in service:%s\n", json_object_get_string(text));
+                                    #endif
+                                    //lets write something in service stdin
+                                    writeInService((const char *)json_object_get_string(text), &(services[s]));
+                                }
+                            }
+                            free(text);
+                        }
+                        free(jsonmess);
+                    }
+                    
+                }
+                free(arr);
+                struct json_object *val = NULL;
+                //search conversation ID
+                if ((val = json_object_object_get(jobj, "watermark")) != NULL )
+                {
+                    if (strlen(json_object_get_string(val)) < WATERMARKSIZE)
+                    {
+                        strcpy(services[s].collateralConversationWatermark, json_object_get_string(val));
+                        
+                        /*if(n_messages > 0)
+                        {
+                            int water = atoi(services[s].collateralConversationWatermark);
+                            water += n_messages;//added 1
+                            sprintf(services[s].collateralConversationWatermark, "%d", water);
+                        }*/
+                        
+                    } 
+                }
+
+                free(val);
+    
+                /* always cleanup */
+                free(jobj);
+                curl_easy_cleanup(curl);
+                free(result);
+                curl_global_cleanup();
+            }
+            
+
+        }
+    }
+}
+
+
+int writeInService(const char *textToWrite, struct ServiceDescriptor *service)
+{
+    if(service == NULL || textToWrite == NULL || strcmp(textToWrite, "") <= 0)
+    {
+        return -1;
+    }
+    /*
+    if( write(service->pipefd[1], textToWrite, strlen(textToWrite)) < 0)
+    {
+        //not written
+        return -2;
+    }*/
+
+    if( mocaWriteinService(service, textToWrite) < 0)
+    {
+        printf("Error writing... \n");
+        return -2;
+    }
+    
+
+    return 0;
+
 }

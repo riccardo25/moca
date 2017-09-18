@@ -19,7 +19,34 @@ For json parsing
 #ifndef _FONTABOTCONNECTOR_H_
 #define _FONTABOTCONNECTOR_H_
 
+/*DEBUG FUNCTION*/
+#if defined DEBUG || defined DEBUGFONTABOTCONNECTOR //defined in fontautil.h
+        //allow debug all data
+        
+        //debug data from principal conversation
+        #ifndef DEBUGDATAPRINCIPALCONVERSATION
+        #define DEBUGDATAPRINCIPALCONVERSATION
+        #endif
 
+        //debug data from collateral conversation
+        #ifndef DEBUGDATACOLLATERALCONVERSATION
+        #define DEBUGDATACOLLATERALCONVERSATION
+        #endif
+
+        //debug what i need to write in service (message from collateral)
+        #ifndef DEBUGWRITEINSERVICE
+        #define DEBUGWRITEINSERVICE
+        #endif
+
+        //debug message sent to bot
+        #ifdef DEBUGSENDMESSAGETOBOT
+        #define DEBUGSENDMESSAGETOBOT
+        #endif
+#endif
+
+/*#ifndef USEPOLL
+#define USEPOLL 
+#endif*/
 
 #ifndef TOKENSIZE
 #define TOKENSIZE 200
@@ -34,6 +61,7 @@ For json parsing
 #endif
 
 
+
 /*
 Used to connect a message from MontessoroBOT to mocamain
 */
@@ -45,6 +73,7 @@ typedef struct BotConnectionParams
         char token[TOKENSIZE]; //token used to connect to bot
         char userID[USERIDSIZE]; //id of this terminal
         pthread_t pollerTID; //thread id of poller
+        pthread_t pollerCollateralConversationID;//thread id of collateral conversation poller
         char *pollWatermark[WATERMARKSIZE];
         CollateralHandler handler; //used to create a connection between BotPOLLER and mocamain
         
@@ -91,5 +120,23 @@ int startService(void *arg);
 Clear the specified service
 */
 void clearService(ServiceDescriptor *service);
+
+
+/**
+Start new Poller that polls all collateral conversations searching new messages
+Service passed
+Return <0 there is an error
+
+*/
+void startPollCollateralConversationBOT(void *arg);
+
+
+/**
+Writes in service textToWrite
+
+return <0 in case of error:     -1 parameters error
+                                -2 writing error
+*/
+int writeInService(const char *textToWrite, struct ServiceDescriptor *service);
 
 #endif
