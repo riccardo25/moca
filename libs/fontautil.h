@@ -79,7 +79,7 @@
 #endif
 */
 //debug data from collateral conversation
-#ifndef DEBUGDATACOLLATERALCONVERSATION
+/*#ifndef DEBUGDATACOLLATERALCONVERSATION
 #define DEBUGDATACOLLATERALCONVERSATION
 #endif
 
@@ -91,7 +91,7 @@
 //debug message sent to bot
 #ifdef DEBUGSENDMESSAGETOBOT
 #define DEBUGSENDMESSAGETOBOT
-#endif
+#endif*/
 
 
 typedef struct ServiceDescriptor

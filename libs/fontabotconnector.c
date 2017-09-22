@@ -151,7 +151,6 @@ int startPollHttp(void *arg)
 
 int sendMessagetoBOT(char *message, BotConnectionParams conn, char **result)
 {
-    printf("Sending %s\n", message);
     #ifdef DEBUGSENDMESSAGETOBOT
     printf("Sending %s\n", message);
     #endif
@@ -768,15 +767,24 @@ void startPollCollateralConversationBOT(void *arg)
                             //search text field
                             if ((text = json_object_object_get(jsonmess, "text")) != NULL)
                             {
+                                //copy the text
+                                int len = strlen(json_object_get_string(text));
+                                char txtstring[len + 1];
+                                strcpy(txtstring, json_object_get_string(text));
+                                txtstring[len] = '\0';
                                 //if it starts with /collateralbot: the message comes from BOT
-                                if(strncmp("/collateralbot", json_object_get_string(text), strlen("/collateralbot")) == 0)
+                                if(strncmp("/collateralbot", txtstring, strlen("/collateralbot")) == 0)
                                 {
+                                    //chunk first /collateralbot charaters
+                                    char *newtxt = &txtstring[strlen("/collateralbot")];
+
                                     #ifdef DEBUGWRITEINSERVICE
-                                    printf("let's writing stuff in service:%s\n", json_object_get_string(text));
+                                    printf("let's writing stuff in service:%s\n", newtxt);
                                     #endif
                                     //lets write something in service stdin
-                                    writeInService((const char *)json_object_get_string(text), &(services[s]));
+                                    writeInService((const char *)newtxt, &(services[s]));
                                 }
+                                
                             }
                             free(text);
                         }
@@ -824,20 +832,12 @@ int writeInService(const char *textToWrite, struct ServiceDescriptor *service)
     {
         return -1;
     }
-    /*
-    if( write(service->pipefd[1], textToWrite, strlen(textToWrite)) < 0)
-    {
-        //not written
-        return -2;
-    }*/
 
     if( mocaWriteinService(service, textToWrite) < 0)
     {
         printf("Error writing... \n");
         return -2;
     }
-    
-
     return 0;
 
 }
