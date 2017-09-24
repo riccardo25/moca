@@ -2,13 +2,17 @@
     MoCA Montessoro Connector Application
     Written by: Riccardo Fontanini
     Start date: 7 August 2017
-    Note:   This program uses Qpid-Proton, download from repository: https://github.com/apache/qpid-proton
-            To test this program you need ActiveMQ (version 5.15 tested) you can find it at: http://activemq.apache.org/activemq-5150-release.html
+    Note:  This program is made to communicate with MontessoRoBOT. 
+
+     R O T A S
+     O P E R A
+     T E N E T
+     A R E P O
+     S A T O R
 
 */
 #include <stdlib.h>
 #include <stdio.h>
-
 #include <proton/connection.h>
 #include <proton/connection_driver.h>
 #include <proton/delivery.h>
@@ -18,10 +22,7 @@
 #include <proton/session.h>
 #include <proton/transport.h>
 #include <proton/url.h>
-
 #include <pthread.h>
-
-
 #include "libs/fontautil.h"
 //#include "libs/fontacommunication.h"
 #include "libs/fontahttp.h"
@@ -80,8 +81,6 @@ int main(int argc, char** argv)
     }
 
     printf(ANSI_COLOR_GREEN "DONE.\n" ANSI_COLOR_RESET);
-    
-
     /****************************************** SENDING INFORMATION TO BOT *************************************/
     
     printf("Sending information to bot.. " );
@@ -140,9 +139,6 @@ int main(int argc, char** argv)
     printf(ANSI_COLOR_GREEN "DONE.\n" ANSI_COLOR_RESET);
     
     printf("\n ---------------------------------------------------------------\n\n");
-
-    //startNewService("ciao");
-    //startNewService("ciao");
 
     //wait until the thread of poller is not died
     pthread_join(botconnectionparam.pollerTID, NULL);

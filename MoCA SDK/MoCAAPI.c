@@ -1,15 +1,3 @@
-/*
-    MoCAAPI.h 
-    Written by: Riccardo Fontanini
-    Start date: 30 August 2017
-    Note:   
-
-     R O T A S
-     O P E R A
-     T E N E T
-     A R E P O
-     S A T O R
-*/
 #include "MoCAAPI.h"
 
 char mocaToken[200];

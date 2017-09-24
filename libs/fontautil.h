@@ -4,11 +4,15 @@
     Start date: 7 August 2017
     Note:   This library is used to group some useful function like, list folders ...
 
+     R O T A S
+     O P E R A
+     T E N E T
+     A R E P O
+     S A T O R
+
 */
 #include <stdlib.h>
 #include <stdio.h>
-
-//to read folders
 #include <unistd.h>
 #include <sys/types.h>
 #include <dirent.h>
@@ -18,8 +22,8 @@
 
 #ifndef _FONTAUTIL_H_
 #define _FONTAUTIL_H_
-
-/* ---------------------------*/
+/****************************************** MACROS ***********************************************************/
+/* --------------------------- --------------------------------------------------------------*/
 /*            COLORS          */
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
@@ -28,21 +32,30 @@
 #define ANSI_COLOR_MAGENTA "\x1b[35m"
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
-/*------------------------------*/
+/*-------------------------------------------------------------------------------------------------------*/
 
 
 //max charaters of files name
+#ifndef MAXNAMEFILE
 #define MAXNAMEFILE 150
+#endif
 //maximum number of subfolders
+#ifndef MAXSUBFOLDERS
 #define MAXSUBFOLDERS 50
-//define this to use Blocking API, to use NON Blocking, comment following line
-//#define BLOCKINGAPI 1
+#endif
 //maximum number of PIDs
+#ifndef MAXOPENPIDS
 #define MAXOPENPIDS 50
+#endif
 //maximum size of buffer in ServiceDescriptor
-#define MAXBUFFERSIZE 255
+#ifndef MAXBUFFERSIZE
+#define MAXBUFFERSIZE 5000
+#endif
+
 //timeout in seconds for service deadlock
+#ifndef TIMEOUTSECONDS
 #define TIMEOUTSECONDS 30
+#endif
 
 //define maximum length of user id 
 #ifndef USERIDSIZE
@@ -93,18 +106,19 @@
 #define DEBUGSENDMESSAGETOBOT
 #endif*/
 
+/****************************************** STRUCTS **********************************************************/
 
 typedef struct ServiceDescriptor
 {
     char folderName[MAXNAMEFILE]; //name of folder (and service)
     pid_t pid; //pid of creating service
-    int pipefd[2]; //pipe of service https://stackoverflow.com/questions/6171552/popen-simultaneous-read-and-write
+    //int pipefd[2]; //pipe of service https://stackoverflow.com/questions/6171552/popen-simultaneous-read-and-write
     char absolutepath[500]; //absolutepath of executible file (insert here because thread permit only one parameter to be passed)
 
     pthread_t tid; //thread id
 
-    fd_set rfds; //non blocking api (timeout implementation)
-    struct timeval tv; //timeout structure
+    //fd_set rfds; //non blocking api (timeout implementation)
+    //struct timeval tv; //timeout structure
 
     char collateralConversationID[CONVERSATIONIDSIZE]; //id of collateral conversation
     char collateralConversationToken[TOKENSIZE];
@@ -113,7 +127,7 @@ typedef struct ServiceDescriptor
 
 } ServiceDescriptor;
 
-
+/**************************************** PROTOTYPES *********************************************************/
 /**
 Returns the number of subfolders and put the list of folders' names in list
 */

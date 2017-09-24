@@ -4,6 +4,13 @@
     Start date: 10 August 2017
     Note:   This library is used to allow comunication with broker
 
+    
+    R O T A S
+    O P E R A
+    T E N E T
+    A R E P O
+    S A T O R
+
 */
 
 #include <proton/connection.h>
@@ -15,8 +22,6 @@
 #include <proton/session.h>
 #include <proton/transport.h>
 #include <proton/url.h>
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,7 +29,8 @@
 
 #ifndef _FONTACOMMUNICATION_H_
 #define _FONTACOMMUNICATION_H_
-
+/****************************************** MACROS ***********************************************************/
+/****************************************** STRUCTS **********************************************************/
 typedef char str[1024];
 
 /*
@@ -44,6 +50,8 @@ typedef struct app_data_t
   pn_link_t *sender;
   bool finished;
 } app_data_t;
+
+/**************************************** PROTOTYPES *********************************************************/
 
 /* Define the code whrn program stops*/
 int exit_code;

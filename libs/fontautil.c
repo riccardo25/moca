@@ -66,16 +66,13 @@ int controlProgramInFolder(char list[MAXSUBFOLDERS][MAXNAMEFILE], int n_folders)
         strcpy(pathname, list[i]);
         strcat(pathname, "/");
         strcat(pathname, list[i]);
-
-//in windows the executible file are .exe
-#ifdef _WIN32
+        //in windows the executible file are .exe
+        #ifdef _WIN32
         strcat(pathname, ".exe");
-#endif
-
+        #endif
         printf("Service found: ");
         printf(pathname);
         printf("\n");
-
         if (access(pathname, F_OK) == -1)
         {
             //file don't exits
@@ -147,15 +144,7 @@ int allocateMemoryServices(ServiceDescriptor **serviceArray, int lengthServiceAr
         //assign folder (service) name to null
         //*((*serviceArray)[i].folderName) = NULL;
         clearService(&((*serviceArray)[i]));
-        //Wait up to TIMEOUTSECONDS seconds.
-        (*serviceArray)[i].tv.tv_sec = TIMEOUTSECONDS;
-        (*serviceArray)[i].tv.tv_usec = 0;
-        //insert absolute path
-        /*if( ((*serviceArray)[i].absolutepath = (char *) malloc( (strlen(absolpth)+1) * sizeof(char) )) == NULL)
-        {
-            return -2;
-        }*/
-
+        //copy absolute path
         strcpy((*serviceArray)[i].absolutepath, absolpth);
     }
 
@@ -215,6 +204,7 @@ int mocaWriteinService(struct ServiceDescriptor *service, const char *buffer)
     }
     //writing file
     fwrite(buffer, strlen(buffer), 1, filewrite);
+    printf("Writing message: %s\n", buffer);
     //closing file
     fclose(filewrite);
     return strlen(buffer);

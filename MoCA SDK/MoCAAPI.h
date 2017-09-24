@@ -7,7 +7,7 @@
      R O T A S
      O P E R A
      T E N E T
-     A R E P O
+     A R E P O 
      S A T O R
 */
 #include <stdlib.h>

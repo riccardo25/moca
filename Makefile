@@ -1,4 +1,4 @@
-#Makefile previsto per il progetto moka
+#Makefile previsto per il progetto MoCA
 #writted by Riccardo Fontanini
 OBJECTS=
 

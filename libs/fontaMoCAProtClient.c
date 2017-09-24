@@ -1,5 +1,17 @@
+/*
+    fontaMoCAProtClient.c
+    Written by: Riccardo Fontanini
+    Start date: 10 August 2017
+    Note:  
 
+    
+    R O T A S
+    O P E R A
+    T E N E T
+    A R E P O
+    S A T O R
 
+*/
 #include "fontaMoCAProtClient.h"
 
 int readMoCAProtMessage(char *message, struct MoCAMessage *parsedMessage)

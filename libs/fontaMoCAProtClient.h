@@ -1,10 +1,24 @@
+/*
+    fontaMoCAProtClient.h
+    Written by: Riccardo Fontanini
+    Start date: 10 August 2017
+    Note:  
 
+    
+    R O T A S
+    O P E R A
+    T E N E T
+    A R E P O
+    S A T O R
+
+*/
 #include <stdlib.h>
 #include <stdio.h> /* printf, sprintf */
 #include <string.h>
+
 #ifndef _FONTAMOCAPROTCLIENT_H_
 #define _FONTAMOCAPROTCLIENT_H_
-
+/****************************************** MACROS ***********************************************************/
 
 /*------------------------------------------ TYPE MESSAGE ARRIVED -----------------------------------------------------*/
 /*
@@ -29,8 +43,6 @@ define a createdCOllateral message
 #define MOCANOTFOUNDTYPE 0
 #endif
 
-/*********************************************** COSTANTS ************************************************************/
-
 /*
 MAX NUMBER OF PARAMETERS
 */
@@ -50,8 +62,8 @@ MAX LENGTH OF PARAMETERS
 #define MAXTYPELENTH 50
 #endif
 
+/****************************************** STRUCTS **********************************************************/
 
-/**************************************************** PROTOTYPES *****************************************************/
 
 struct MoCAMessage
 {
@@ -60,15 +72,12 @@ struct MoCAMessage
     char params[MAXMOCAPARAMS][MAXMOCAPARAMSLENGTH];
 };
 
+/**************************************************** PROTOTYPES ******************************************/
 
-/**************************** READ MESSAGE ************************************************************************/
 /*
 Reads a message and get information about the message, returns type of message
 */
 int readMoCAProtMessage(char *message, struct MoCAMessage *parsedMessage);
-
-
-/**************************************************** WRITE MESSAGE ************************************************/
 
 /*
 Copy in message the right message to send

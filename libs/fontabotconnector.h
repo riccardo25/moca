@@ -1,8 +1,20 @@
 /*
-Uses:   https://linuxprograms.wordpress.com/2010/05/20/json-c-libjson-tutorial/
-        https://github.com/json-c/json-c
-For json parsing
+    fontabotconnector.h
+    Written by: Riccardo Fontanini
+    Start date: 7 August 2017
+    Note:       https://linuxprograms.wordpress.com/2010/05/20/json-c-libjson-tutorial/
+                https://github.com/json-c/json-c
+        Library to link some stuff
+
+
+
+    R O T A S
+    O P E R A
+    T E N E T
+    A R E P O
+    S A T O R
 */
+
 #include <pthread.h>
 #include "fontahttp.h"
 #include <stdio.h> /* printf, sprintf */
@@ -18,7 +30,7 @@ For json parsing
 
 #ifndef _FONTABOTCONNECTOR_H_
 #define _FONTABOTCONNECTOR_H_
-
+/****************************************** MACROS ***********************************************************/
 /*DEBUG FUNCTION*/
 #if defined DEBUG || defined DEBUGFONTABOTCONNECTOR //defined in fontautil.h
         //allow debug all data
@@ -59,9 +71,7 @@ For json parsing
 #ifndef WATERMARKSIZE
 #define WATERMARKSIZE 20
 #endif
-
-
-
+/****************************************** STRUCTS **********************************************************/
 /*
 Used to connect a message from MontessoroBOT to mocamain
 */
@@ -79,8 +89,7 @@ typedef struct BotConnectionParams
         
 }BotConnectionParams;
 
-
-
+/**************************************** PROTOTYPES *********************************************************/
 /*
 Start a conversation and insert in token, a retrived token from server
 */

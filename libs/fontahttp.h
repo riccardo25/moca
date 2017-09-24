@@ -4,6 +4,12 @@
     Start date: 24 August 2017
     Note:   This library allow connection in http ...
 
+    R O T A S
+    O P E R A
+    T E N E T
+    A R E P O
+    S A T O R
+
 */
 
 #include <stdio.h> /* printf, sprintf */
@@ -18,7 +24,7 @@
 
 #ifndef _FONTAHTTP_H_
 #define _FONTAHTTP_H_
-
+/****************************************** MACROS ***********************************************************/
 // value of buffer recived (iterative beacuse this library download dinamycally)
 #ifndef RCVBUFFER
 #define RCVBUFFER 200
@@ -44,12 +50,13 @@
 #define WAITCOLLATERALPOLLSECONDS 3
 #endif
 
+/****************************************** STRUCTS **********************************************************/
 
-
-typedef struct MemoryStruct {
+typedef struct MemoryStruct 
+{
     char *memory;
     size_t size;
-  } MemoryStruct;
+} MemoryStruct;
 
 
 //Type that carry HTTP options
@@ -74,9 +81,8 @@ typedef struct HttpsDescriptor
     pthread_t tid; //thread id
 
 } HttpsDescriptor;
-
+/**************************************** PROTOTYPES *********************************************************/
 /* HTTP CONNECTION (NO ENCRYPT) */
-
 /*
 Allow to open connection
 sockfd -> is file descriptor variabile 
