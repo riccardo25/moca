@@ -1,5 +1,5 @@
 #Makefile previsto per il progetto MoCA
-#writted by Riccardo Fontanini
+#written by Riccardo Fontanini
 OBJECTS=
 
 CC=gcc

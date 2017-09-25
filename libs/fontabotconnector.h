@@ -60,17 +60,7 @@
 #define USEPOLL 
 #endif*/
 
-#ifndef TOKENSIZE
-#define TOKENSIZE 200
-#endif
 
-#ifndef CONVERSATIONIDSIZE
-#define CONVERSATIONIDSIZE 200
-#endif
-
-#ifndef WATERMARKSIZE
-#define WATERMARKSIZE 20
-#endif
 /****************************************** STRUCTS **********************************************************/
 /*
 Used to connect a message from MontessoroBOT to mocamain

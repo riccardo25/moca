@@ -39,7 +39,7 @@ void createServiceCollateralBOTConnector(struct MoCAMessage message);
 char list[MAXSUBFOLDERS][MAXNAMEFILE]; //list of folders
 int nFoundFolders = 0; //number of folders
 char absolutePath[1000]; //absolute path of executable file
-char UserID[] = "119926";
+char UserID[USERIDLENGTH];
 ServiceDescriptor *services; //array of services
 int lengthServices = 0;//length of array services
 //HttpDescriptor httpPoller; //poller info
@@ -47,9 +47,36 @@ BotConnectionParams botconnectionparam;
 
 
 /*          MAIN                    */
+// -i or -id to set userID
 int main(int argc, char** argv)
 {
     startscreen();
+    //params selector
+    //strcpy(UserID, "119926");
+    if(argc > 1)
+    {
+        int p;
+        for (p = 1; p < argc; p+=2)
+        {
+            if(strcmp( argv[p], "-id") == 0 || strcmp( argv[p], "-i") == 0)//Userid set
+            {
+                if(p+1 < argc)
+                {
+                    strcpy(UserID,argv[p+1]);
+                    UserID[strlen(argv[p+1])] = '\0';
+                    
+
+                }
+            }
+        }
+    }
+    /*************************** PARAMS CONTROL*************************/
+    if(strlen(UserID) == 0)
+    {
+        printf(ANSI_COLOR_RED "Error not setted UserID!" ANSI_COLOR_RESET " ./moca -i <userid> to set UserID \n\n");
+        return -16;
+    }
+    printf("UserID: %s\n", UserID);
     folderController();
     strcpy(botconnectionparam.userID, "sdkbk5646csd313d5sf1383sdz1c5sx1cc11");//set userid
     botconnectionparam.pollWatermark[0] = 0;//set watermark to empty string
@@ -130,10 +157,10 @@ int main(int argc, char** argv)
     /* ****************************************** SEND INFO TO MYSQL ************************************************/
 
     printf("Publishing informations to Database... ");
-    
-    if(publishMySQLInfo(UserID, botconnectionparam.conversationId) <0)
+    int error = 0;
+    if( (error = publishMySQLInfo(UserID, botconnectionparam.conversationId) ) <0)
     {
-        printf(ANSI_COLOR_RED "Error sending MySQL informations!" ANSI_COLOR_RESET "\n");
+        printf(ANSI_COLOR_RED "Error sending MySQL informations! %d" ANSI_COLOR_RESET "\n", error );
         return -12;
     }
     printf(ANSI_COLOR_GREEN "DONE.\n" ANSI_COLOR_RESET);
@@ -243,7 +270,7 @@ void startscreen()
 
 }
 
-int publishMySQLInfo(char *UserID, char *MoCAConversation)
+int publishMySQLInfo(char *userID, char *MoCAConversation)
 {
     //create connection
     HttpDescriptor mysqlAPI;
@@ -261,7 +288,7 @@ int publishMySQLInfo(char *UserID, char *MoCAConversation)
         strcat(servicesstring, list[i]);
     }
     //create get request
-    sprintf(getRequest, "GET http://riccardofonta.altervista.org/montessorobot/?Function=insert&UserID=%s&MoCAConversationID=%s&Services=%s\r\n\r\n", UserID, MoCAConversation, servicesstring);
+    sprintf(getRequest, "GET http://riccardofonta.altervista.org/montessorobot/?Function=insert&UserID=%s&MoCAConversationID=%s&Services=%s\r\n\r\n", userID, MoCAConversation, servicesstring);
     int t = 0;
     //open connection
     if( (t = openHTTPConnection(&mysqlAPI)) < 0)
