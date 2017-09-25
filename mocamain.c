@@ -13,7 +13,7 @@
 */
 #include <stdlib.h>
 #include <stdio.h>
-#include <proton/connection.h>
+/*#include <proton/connection.h>
 #include <proton/connection_driver.h>
 #include <proton/delivery.h>
 #include <proton/proactor.h>
@@ -21,7 +21,7 @@
 #include <proton/message.h>
 #include <proton/session.h>
 #include <proton/transport.h>
-#include <proton/url.h>
+#include <proton/url.h>*/
 #include <pthread.h>
 #include "libs/fontautil.h"
 //#include "libs/fontacommunication.h"
@@ -226,9 +226,19 @@ void folderController()
 
 void startscreen()
 {
-    printf(" ---------------------------------------------------------------\n");
+    /*printf(" ---------------------------------------------------------------\n");
     printf("|\t\t\tWELCOME TO MoCA\t\t\t\t|\n");
-    printf(" ---------------------------------------------------------------\n\n\n");
+    printf(" ---------------------------------------------------------------\n\n\n");*/
+    system("@cls||clear");
+    printf(
+    "\n _____ ______   ________  ________  ________     \n"
+    "|\\   _ \\  _   \\|\\   __  \\|\\   ____\\|\\   __  \\    \n"
+    "\\ \\  \\\\\\__\\ \\  \\ \\  \\|\\  \\ \\  \\___|\\ \\  \\|\\  \\   \n"
+    " \\ \\  \\\\|__| \\  \\ \\  \\\\\\  \\ \\  \\    \\ \\   __  \\  \n"
+    "  \\ \\  \\    \\ \\  \\ \\  \\\\\\  \\ \\  \\____\\ \\  \\ \\  \\ \n"
+    "   \\ \\__\\    \\ \\__\\ \\_______\\ \\_______\\ \\__\\ \\__\\\n"
+    "    \\|__|     \\|__|\\|_______|\\|_______|\\|__|\\|__|\n"
+    "\n\n");
     printf("This program is made by Riccardo Fontanini\n\n");
 
 }
