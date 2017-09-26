@@ -402,9 +402,9 @@ int startPollBOT(void *arg)
             result[(long)chunk.size] = 0; //put last charater to null
             free(chunk.memory);           //free the memory
 
-        #ifdef DEBUGDATAPRINCIPALCONVERSATION
+            #ifdef DEBUGDATAPRINCIPALCONVERSATION
             printf("Data:%s\n", result);
-    #endif
+            #endif
 
             struct json_object *jobj = NULL;
 
@@ -505,6 +505,7 @@ int startService(void *arg)
     sendMessagetoBOT("/collateralclientfirstmessage", collateralConnectionParams, &result);
     free(result);
 
+    //exec fork
     if ((service->pid = fork()) < 0)
     {
         printf(ANSI_COLOR_RED "Impossibile to create PID stop StartService" ANSI_COLOR_RESET "\n");
@@ -542,7 +543,7 @@ int startService(void *arg)
     //not blocking api
     int selectResult = 0, bytesRead = 0, numofread = 0;
     char buffer[MAXBUFFERSIZE];
-    for (numofread = 0; numofread < 20; numofread++)
+    for (numofread = 0; numofread < TIMEOUTSECONDS; numofread++)
     {
         int tot = mocaReadfromService(service, buffer, MAXBUFFERSIZE);
         if (tot > 0)

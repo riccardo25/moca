@@ -39,7 +39,7 @@ void createServiceCollateralBOTConnector(struct MoCAMessage message);
 char list[MAXSUBFOLDERS][MAXNAMEFILE]; //list of folders
 int nFoundFolders = 0; //number of folders
 char absolutePath[1000]; //absolute path of executable file
-char UserID[USERIDLENGTH];
+char UserID[USERIDSIZE];
 ServiceDescriptor *services; //array of services
 int lengthServices = 0;//length of array services
 //HttpDescriptor httpPoller; //poller info

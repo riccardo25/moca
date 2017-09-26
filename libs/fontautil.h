@@ -33,18 +33,6 @@
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
 /*-------------------------------------------------------------------------------------------------------*/
-//length of token
-#ifndef TOKENSIZE
-#define TOKENSIZE 200
-#endif
-//conversation id size
-#ifndef CONVERSATIONIDSIZE
-#define CONVERSATIONIDSIZE 200
-#endif
-// size of watermark
-#ifndef WATERMARKSIZE
-#define WATERMARKSIZE 20
-#endif
 
 //max charaters of files name
 #ifndef MAXNAMEFILE
@@ -56,7 +44,7 @@
 #endif
 //maximum number of PIDs
 #ifndef MAXOPENPIDS
-#define MAXOPENPIDS 50
+#define MAXOPENPIDS 100
 #endif
 //maximum size of buffer in ServiceDescriptor
 #ifndef MAXBUFFERSIZE
@@ -91,10 +79,6 @@
 //max read attempt
 #ifndef MAXREADFROMSERVICEATTEMPTS
 #define MAXREADFROMSERVICEATTEMPTS 5
-#endif
-
-#ifndef USERIDLENGTH
-#define USERIDLENGTH 100
 #endif
 
 /*
