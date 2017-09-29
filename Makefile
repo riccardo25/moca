@@ -31,7 +31,7 @@ fontautil:
 	$(CC) $(CFLAGS) -o $(FONTAUTILO) -c libs/fontautil.c -lpthread
 
 send:
-	gcc -g -Wall -o build/linux/sendandrecive/sendandrecive build/linux/sendandrecive/sendandrecive.c build/linux/sendandrecive/MoCAAPI.c
+	gcc -g -Wall -o build/linux/sendandreceive/sendandreceive build/linux/sendandreceive/sendandreceive.c build/linux/sendandreceive/MoCAAPI.c
 
 $(PROGRAM_NAME): fontautil fontahttp fontabotconnector fontamocaprotclient
 	@mkdir -p build/linux
