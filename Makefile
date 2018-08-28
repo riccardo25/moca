@@ -33,6 +33,9 @@ fontautil:
 send:
 	gcc -g -Wall -o build/linux/sendandreceive/sendandreceive build/linux/sendandreceive/sendandreceive.c build/linux/sendandreceive/MoCAAPI.c
 
+prede:
+	gcc -g -Wall -o build/linux/prede/prede build/linux/prede/prede.c build/linux/prede/MoCAAPI.c
+
 $(PROGRAM_NAME): fontautil fontahttp fontabotconnector fontamocaprotclient
 	@mkdir -p build/linux
 	$(CC) $(CFLAGS) $(NAMEFILE) -o build/linux/$(PROGRAM_NAME) $(OBJECTS) $(LIBS)
